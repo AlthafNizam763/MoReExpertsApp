@@ -9,7 +9,7 @@ class AppTheme {
       brightness: Brightness.light,
       primaryColor: AppColors.black,
       scaffoldBackgroundColor: AppColors.white,
-      
+
       // Typography
       textTheme: GoogleFonts.outfitTextTheme().apply(
         bodyColor: AppColors.black,
@@ -41,7 +41,7 @@ class AppTheme {
           ),
         ),
       ),
-      
+
       // Text Inputs
       inputDecorationTheme: InputDecorationTheme(
         fillColor: AppColors.lightGray,
@@ -58,7 +58,8 @@ class AppTheme {
           borderRadius: BorderRadius.circular(8),
           borderSide: const BorderSide(color: AppColors.black, width: 1.5),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         hintStyle: GoogleFonts.outfit(color: AppColors.mediaGray),
       ),
     );

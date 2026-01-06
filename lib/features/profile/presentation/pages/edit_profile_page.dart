@@ -13,7 +13,7 @@ class EditProfilePage extends StatefulWidget {
 class _EditProfilePageState extends State<EditProfilePage> {
   final _formKey = GlobalKey<FormState>();
 
-  // Controllers for the fields
+  // Controllers and initial values for tracking changes
   late final TextEditingController _nameController;
   final _dobController = TextEditingController(text: '1 Jan 1995');
   final _phoneController = TextEditingController(text: '+91 98765 43210');
@@ -21,6 +21,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final _linkedinController =
       TextEditingController(text: 'linkedin.com/in/username');
   final _locationController = TextEditingController(text: 'New York, USA');
+
+  late Map<String, String> _initialValues;
+  bool _isModified = false;
+  String _gender = 'Male';
 
   @override
   void initState() {
@@ -31,6 +35,41 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
     _nameController = TextEditingController(text: name);
     _emailController = TextEditingController(text: email);
+
+    // Capture initial values
+    _initialValues = {
+      'name': _nameController.text,
+      'dob': _dobController.text,
+      'phone': _phoneController.text,
+      'email': _emailController.text,
+      'linkedin': _linkedinController.text,
+      'location': _locationController.text,
+      'gender': _gender,
+    };
+
+    // Add listeners to detect changes
+    _nameController.addListener(_checkModifications);
+    _dobController.addListener(_checkModifications);
+    _phoneController.addListener(_checkModifications);
+    _emailController.addListener(_checkModifications);
+    _linkedinController.addListener(_checkModifications);
+    _locationController.addListener(_checkModifications);
+  }
+
+  void _checkModifications() {
+    final currentlyModified = _nameController.text != _initialValues['name'] ||
+        _dobController.text != _initialValues['dob'] ||
+        _phoneController.text != _initialValues['phone'] ||
+        _emailController.text != _initialValues['email'] ||
+        _linkedinController.text != _initialValues['linkedin'] ||
+        _locationController.text != _initialValues['location'] ||
+        _gender != _initialValues['gender'];
+
+    if (currentlyModified != _isModified) {
+      setState(() {
+        _isModified = currentlyModified;
+      });
+    }
   }
 
   @override
@@ -43,8 +82,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
     _locationController.dispose();
     super.dispose();
   }
-
-  String _gender = 'Male';
 
   @override
   Widget build(BuildContext context) {
@@ -143,29 +180,37 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   prefixIcon: Icons.location_on_outlined),
 
               const SizedBox(height: 48),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.black,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+              if (_isModified)
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Profile updated successfully'),
+                          backgroundColor: AppColors.black,
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                      Navigator.pop(context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.black,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
-                  ),
-                  child: const Text(
-                    'Save',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.white,
+                    child: const Text(
+                      'Update',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.white,
+                      ),
                     ),
                   ),
                 ),
-              ),
               const SizedBox(height: 24),
             ],
           ),
@@ -234,6 +279,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       onTap: () {
         setState(() {
           _gender = gender;
+          _checkModifications();
         });
       },
       child: Container(

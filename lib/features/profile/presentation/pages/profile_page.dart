@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../auth/presentation/provider/auth_provider.dart';
+import '../../../services/presentation/pages/package_list_page.dart';
 import 'edit_profile_page.dart';
-import 'notifications_page.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -14,7 +14,7 @@ class ProfilePage extends StatelessWidget {
       backgroundColor: AppColors.white,
       appBar: AppBar(
         title: const Text(
-          'Profile',
+          'Settings',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         leading: IconButton(
@@ -79,25 +79,29 @@ class ProfilePage extends StatelessWidget {
               },
             ),
             _ProfileMenuItem(
-              icon: Icons.settings_outlined,
-              label: 'Settings',
+              icon: Icons.card_membership_outlined,
+              label: 'Available Packages',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const PackageListPage()),
+                );
+              },
+            ),
+            _ProfileMenuItem(
+              icon: Icons.lock_outlined,
+              label: 'password',
               onTap: () {},
             ),
             _ProfileMenuItem(
               icon: Icons.notifications_none_outlined,
               label: 'Notifications',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const NotificationsPage()),
-                );
-              },
-            ),
-            _ProfileMenuItem(
-              icon: Icons.assignment_outlined,
-              label: 'Transaction History',
               onTap: () {},
+              trailing: Switch.adaptive(
+                value: true,
+                onChanged: (value) {},
+              ),
             ),
             _ProfileMenuItem(
               icon: Icons.question_answer_outlined,
@@ -113,14 +117,44 @@ class ProfilePage extends StatelessWidget {
             _ProfileMenuItem(
               icon: Icons.logout,
               label: 'Logout',
-              onTap: () {
-                context.read<AuthProvider>().logout();
-              },
+              onTap: () => _showLogoutDialog(context),
               isLogout: true,
             ),
           ],
         ),
       ),
+    );
+  }
+
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Logout'),
+          content: const Text('Are you sure you want to proceed with logout?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: AppColors.mediaGray),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                context.read<AuthProvider>().logout();
+              },
+              child: const Text(
+                'Logout',
+                style: TextStyle(
+                    color: AppColors.error, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -130,12 +164,14 @@ class _ProfileMenuItem extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
   final bool isLogout;
+  final Widget? trailing;
 
   const _ProfileMenuItem({
     required this.icon,
     required this.label,
     required this.onTap,
     this.isLogout = false,
+    this.trailing,
   });
 
   @override
@@ -157,6 +193,7 @@ class _ProfileMenuItem extends StatelessWidget {
           color: AppColors.black,
         ),
       ),
+      trailing: trailing,
       onTap: onTap,
       contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
     );

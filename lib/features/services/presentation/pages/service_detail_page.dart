@@ -31,7 +31,7 @@ class ServiceDetailPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Project Status',
+              'Status',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -46,7 +46,7 @@ class ServiceDetailPage extends StatelessWidget {
   }
 
   List<Widget> _buildStatusList() {
-    if (serviceTitle != 'Resume Making') {
+    if (serviceTitle != 'Resume') {
       return [
         _buildStatusItem(
           title: serviceTitle,

@@ -14,7 +14,7 @@ class ServiceListPage extends StatelessWidget {
     // All possible services
     final allServices = [
       {
-        'title': 'Resume Making',
+        'title': 'Resume',
         'status': 'Completed',
         'date': 'Today',
         'package': 'silver'

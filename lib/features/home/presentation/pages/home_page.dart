@@ -9,6 +9,7 @@ import 'package:more_experts/features/services/presentation/pages/services_page.
 import 'package:more_experts/features/profile/presentation/pages/profile_page.dart';
 import 'package:more_experts/features/chat/presentation/pages/chat_page.dart';
 import '../../../../core/widgets/spotlight_nav_bar.dart';
+import 'package:more_experts/features/profile/presentation/pages/notifications_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -43,6 +44,9 @@ class DashboardTab extends StatelessWidget {
   final ServicePackage currentPackage =
       ServicePackage.premium2; // For demonstration
 
+  static const IconData notifications =
+      IconData(0xe44f, fontFamily: 'MaterialIcons');
+
   const DashboardTab({super.key});
 
   @override
@@ -58,6 +62,20 @@ class DashboardTab extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Dashboard'),
         automaticallyImplyLeading: false,
+        actions: [
+          IconButton(
+            icon: const Icon(notifications),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const NotificationsPage(),
+                ),
+              );
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -67,15 +85,15 @@ class DashboardTab extends StatelessWidget {
             // Welcome Section
             const Text(
               'Welcome Back',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
 
-            const SizedBox(height: 30),
+            const SizedBox(height: 10),
 
             // Active Service Card (Multi-Package Support)
             _buildAtmCard(context, currentPackage, userName, creationDate),
 
-            const SizedBox(height: 30),
+            const SizedBox(height: 10),
 
             // Documents Section
             Row(

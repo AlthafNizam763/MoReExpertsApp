@@ -53,15 +53,9 @@ class NotificationsPage extends StatelessWidget {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            onPressed: () {},
-          ),
-        ],
+        centerTitle: true,
         backgroundColor: AppColors.white,
         elevation: 0,
-        centerTitle: true,
       ),
       body: ListView.separated(
         padding: const EdgeInsets.all(24),
