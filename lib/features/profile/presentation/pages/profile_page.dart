@@ -4,6 +4,9 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../auth/presentation/provider/auth_provider.dart';
 import '../../../services/presentation/pages/package_list_page.dart';
 import 'edit_profile_page.dart';
+import 'change_password_page.dart';
+import 'about_app_page.dart';
+import 'faq_page.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -17,10 +20,7 @@ class ProfilePage extends StatelessWidget {
           'Settings',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+        automaticallyImplyLeading: false,
         backgroundColor: AppColors.white,
         elevation: 0,
         centerTitle: true,
@@ -91,8 +91,14 @@ class ProfilePage extends StatelessWidget {
             ),
             _ProfileMenuItem(
               icon: Icons.lock_outlined,
-              label: 'password',
-              onTap: () {},
+              label: 'Password',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const ChangePasswordPage()),
+                );
+              },
             ),
             _ProfileMenuItem(
               icon: Icons.notifications_none_outlined,
@@ -106,12 +112,22 @@ class ProfilePage extends StatelessWidget {
             _ProfileMenuItem(
               icon: Icons.question_answer_outlined,
               label: 'FAQ',
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const FaqPage()),
+                );
+              },
             ),
             _ProfileMenuItem(
               icon: Icons.info_outline,
               label: 'About App',
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AboutAppPage()),
+                );
+              },
             ),
             const SizedBox(height: 12),
             _ProfileMenuItem(
