@@ -2,14 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/service_package.dart';
+import 'package:more_experts/core/constants/app_colors.dart';
+import 'package:more_experts/core/constants/service_package.dart';
 import 'package:more_experts/features/auth/presentation/provider/auth_provider.dart';
 import 'package:more_experts/features/services/presentation/pages/services_page.dart';
 import 'package:more_experts/features/profile/presentation/pages/profile_page.dart';
 import 'package:more_experts/features/chat/presentation/pages/chat_page.dart';
-import '../../../../core/widgets/spotlight_nav_bar.dart';
+import 'package:more_experts/features/profile/domain/models/user_model.dart';
+import 'package:more_experts/core/widgets/spotlight_nav_bar.dart';
 import 'package:more_experts/features/profile/presentation/pages/notifications_page.dart';
+import 'dart:convert';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:open_filex/open_filex.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -41,9 +46,6 @@ class _HomePageState extends State<HomePage> {
 }
 
 class DashboardTab extends StatelessWidget {
-  final ServicePackage currentPackage =
-      ServicePackage.premium2; // For demonstration
-
   static const IconData notifications =
       IconData(0xe44f, fontFamily: 'MaterialIcons');
 
@@ -52,11 +54,10 @@ class DashboardTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = context.watch<AuthProvider>().currentUser;
-    final userName =
-        (user?.email?.replaceAll('@gmail.com', '') ?? 'USER').toUpperCase();
-    final creationDate = user?.metadata.creationTime != null
-        ? DateFormat('dd/MM/yyyy').format(user!.metadata.creationTime!)
-        : '01/01/2026';
+    if (user == null) return const Center(child: CircularProgressIndicator());
+
+    final userName = user.name.toUpperCase();
+    final creationDate = DateFormat('dd/MM/yyyy').format(user.createdAt);
 
     return Scaffold(
       appBar: AppBar(
@@ -91,7 +92,7 @@ class DashboardTab extends StatelessWidget {
             const SizedBox(height: 10),
 
             // Active Service Card (Multi-Package Support)
-            _buildAtmCard(context, currentPackage, userName, creationDate),
+            _buildAtmCard(context, user, userName, creationDate),
 
             const SizedBox(height: 10),
 
@@ -108,30 +109,34 @@ class DashboardTab extends StatelessWidget {
 
             const SizedBox(height: 10),
             // Dynamic Document List
-            _buildFilteredDocuments(context, currentPackage),
+            _buildFilteredDocuments(context, user),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildFilteredDocuments(BuildContext context, ServicePackage package) {
+  Widget _buildFilteredDocuments(BuildContext context, UserModel user) {
     List<Widget> documents = [];
+    final package = user.package;
 
-    // Always show PDF for all
-    documents.add(
-      _buildDocumentCard(
-        context,
-        'Service Guide.pdf',
-        'PDF Document • 2.4 MB',
-        Icons.picture_as_pdf,
-        Colors.red.shade100,
-        Colors.red,
-      ),
-    );
+    // Service Guide
+    if (user.documents.serviceGuide != null) {
+      documents.add(
+        _buildDocumentCard(
+          context,
+          'Service Guide.pdf',
+          'PDF Document • 2.4 MB',
+          Icons.picture_as_pdf,
+          Colors.red.shade100,
+          Colors.red,
+          user.documents.serviceGuide,
+        ),
+      );
+    }
 
-    // Show Word for Silver2 and above
-    if (package != ServicePackage.silver) {
+    // Contract (Silver2 and above)
+    if (package != ServicePackage.silver && user.documents.contract != null) {
       documents.add(
         _buildDocumentCard(
           context,
@@ -140,12 +145,15 @@ class DashboardTab extends StatelessWidget {
           Icons.description,
           Colors.blue.shade100,
           Colors.blue,
+          user.documents.contract,
         ),
       );
     }
 
-    // Show Cover Letter for Golden and above
-    if (package != ServicePackage.silver && package != ServicePackage.silver2) {
+    // Cover Letter (Golden and above)
+    if (package != ServicePackage.silver &&
+        package != ServicePackage.silver2 &&
+        user.documents.coverLetter != null) {
       documents.add(
         _buildDocumentCard(
           context,
@@ -154,9 +162,25 @@ class DashboardTab extends StatelessWidget {
           Icons.badge_outlined,
           Colors.orange.shade100,
           Colors.orange,
+          user.documents.coverLetter,
         ),
       );
     }
+
+    // ID Proof
+    // if (user.documents.idProof != null) {
+    //   documents.add(
+    //     _buildDocumentCard(
+    //       context,
+    //       'ID Proof.pdf',
+    //       'PDF Document • 1.2 MB',
+    //       Icons.fingerprint,
+    //       Colors.green.shade100,
+    //       Colors.green,
+    //       user.documents.idProof,
+    //     ),
+    //   );
+    // }
 
     return Column(
       children: documents
@@ -168,8 +192,9 @@ class DashboardTab extends StatelessWidget {
     );
   }
 
-  Widget _buildAtmCard(BuildContext context, ServicePackage package,
-      String userName, String date) {
+  Widget _buildAtmCard(
+      BuildContext context, UserModel user, String userName, String date) {
+    final package = user.package;
     String serviceName;
     List<Color> gradientColors;
     Color progressBarColor;
@@ -293,7 +318,7 @@ class DashboardTab extends StatelessWidget {
                           ),
                         ),
                         FractionallySizedBox(
-                          widthFactor: 0.7,
+                          widthFactor: user.updateProgress,
                           child: Container(
                             height: 12,
                             decoration: BoxDecoration(
@@ -307,15 +332,13 @@ class DashboardTab extends StatelessWidget {
                   if (package != ServicePackage.premium2)
                     const SizedBox(height: 8),
                   Text(
-                    package == ServicePackage.premium2
-                        ? 'LIFE TIME VALID'
-                        : '70%',
+                    user.updateStatusText,
                     style: TextStyle(
                       color: package == ServicePackage.premium2
                           ? const Color(0xFFFFD700)
                           : Colors.white,
                       fontWeight: FontWeight.bold,
-                      fontSize: 18,
+                      fontSize: 15,
                       fontFamily: '', // Fallback for serif style
                       fontStyle: FontStyle.normal,
                     ),
@@ -371,19 +394,57 @@ class DashboardTab extends StatelessWidget {
     return card;
   }
 
+  Future<void> _openDocument(
+      BuildContext context, String fileName, String? base64Content) async {
+    if (base64Content == null || base64Content.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Document content not available.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    try {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Opening $fileName...'),
+          duration: const Duration(seconds: 1),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: AppColors.black,
+        ),
+      );
+
+      // Clean the base64 string if it contains a data URI scheme
+      String cleanBase64 = base64Content;
+      if (base64Content.contains(',')) {
+        cleanBase64 = base64Content.split(',').last;
+      }
+
+      // Remove any potential whitespace
+      cleanBase64 = cleanBase64.replaceAll(RegExp(r'\s+'), '');
+
+      final bytes = base64Decode(cleanBase64);
+      final dir = await getTemporaryDirectory();
+      final file = File('${dir.path}/$fileName');
+      await file.writeAsBytes(bytes);
+
+      await OpenFilex.open(file.path);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error opening document: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   Widget _buildDocumentCard(BuildContext context, String title, String subtitle,
-      IconData icon, Color bgColor, Color iconColor) {
+      IconData icon, Color bgColor, Color iconColor, String? base64Content) {
     return InkWell(
-      onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Opening and downloading $title...'),
-            duration: const Duration(seconds: 2),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: AppColors.black,
-          ),
-        );
-      },
+      onTap: () => _openDocument(context, title, base64Content),
       borderRadius: BorderRadius.circular(16),
       child: Container(
         padding: const EdgeInsets.all(16),

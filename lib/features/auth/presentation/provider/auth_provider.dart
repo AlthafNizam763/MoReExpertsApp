@@ -1,6 +1,6 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '../../data/auth_service.dart';
+import 'package:more_experts/features/auth/data/auth_service.dart';
+import 'package:more_experts/features/profile/domain/models/user_model.dart';
 
 enum AuthStatus { initial, authenticated, unauthenticated, loading }
 
@@ -10,23 +10,15 @@ class AuthProvider extends ChangeNotifier {
   AuthStatus _status = AuthStatus.initial;
   AuthStatus get status => _status;
 
-  User? _currentUser;
-  User? get currentUser => _currentUser;
+  UserModel? _currentUser;
+  UserModel? get currentUser => _currentUser;
 
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
   AuthProvider() {
-    // Listen to auth state changes
-    _authService.user.listen((User? user) {
-      _currentUser = user;
-      if (user != null) {
-        _status = AuthStatus.authenticated;
-      } else {
-        _status = AuthStatus.unauthenticated;
-      }
-      notifyListeners();
-    });
+    // Initial status is unauthenticated until login
+    _status = AuthStatus.unauthenticated;
   }
 
   Future<void> login(String email, String password) async {
@@ -35,12 +27,14 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _authService.login(email, password);
-      // Status will be updated via the stream listener
-    } on FirebaseAuthException catch (e) {
-      print('DEBUG: AuthProvider caught FirebaseAuthException: ${e.code}');
-      _status = AuthStatus.unauthenticated;
-      _errorMessage = _mapFirebaseError(e.code);
+      final user = await _authService.login(email, password);
+      if (user != null) {
+        _currentUser = user;
+        _status = AuthStatus.authenticated;
+      } else {
+        _status = AuthStatus.unauthenticated;
+        _errorMessage = "Invalid email or password.";
+      }
     } catch (e) {
       print('DEBUG: AuthProvider caught unexpected error: $e');
       _status = AuthStatus.unauthenticated;
@@ -53,21 +47,50 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> logout() async {
     await _authService.logout();
-    // Status will be updated via the stream listener
+    _currentUser = null;
+    _status = AuthStatus.unauthenticated;
+    notifyListeners();
   }
 
-  String _mapFirebaseError(String code) {
-    switch (code) {
-      case 'user-not-found':
-        return 'No user found for that email.';
-      case 'wrong-password':
-        return 'Wrong password provided.';
-      case 'invalid-email':
-        return 'The email address is badly formatted.';
-      case 'user-disabled':
-        return 'This user has been disabled.';
-      default:
-        return 'Authentication failed: $code';
+  Future<void> updateUser(UserModel user) async {
+    _status = AuthStatus.loading;
+    notifyListeners();
+
+    try {
+      await _authService.updateUser(user);
+      _currentUser = user; // Update local user state
+      _status = AuthStatus.authenticated;
+    } catch (e) {
+      print('DEBUG: AuthProvider caught error updating user: $e');
+      _errorMessage = "Failed to update profile. Please try again.";
+      // Don't change status to unauthenticated, just show error
     }
+
+    notifyListeners();
+  }
+
+  Future<void> changePassword(
+      String currentPassword, String newPassword) async {
+    if (_currentUser == null) return;
+
+    _status = AuthStatus.loading;
+    notifyListeners();
+
+    try {
+      await _authService.changePassword(
+          _currentUser!.id, currentPassword, newPassword);
+      // Keep authenticated status after success
+      _status = AuthStatus.authenticated;
+    } catch (e) {
+      print('DEBUG: AuthProvider caught error changing password: $e');
+      _errorMessage = e.toString().contains('Incorrect current password')
+          ? 'Incorrect current password'
+          : "Failed to change password. Please try again.";
+      // Restore authenticated status but keep error message for UI to show
+      _status = AuthStatus.authenticated;
+      rethrow;
+    }
+
+    notifyListeners();
   }
 }

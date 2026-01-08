@@ -25,10 +25,13 @@ class MongoDBService {
     }
 
     try {
+      final maskedUri = uri.replaceFirst(RegExp(r':([^@]+)@'), ':****@');
+      log('DEBUG: Connecting to MongoDB with URI: $maskedUri');
+
       _db = await Db.create(uri);
       await _db!.open();
       _isConnected = true;
-      log('Successfully connected to MongoDB: $dbName');
+      log('Successfully connected to MongoDB database: ${_db!.databaseName}');
     } catch (e) {
       log('Error connecting to MongoDB: $e');
       _isConnected = false;

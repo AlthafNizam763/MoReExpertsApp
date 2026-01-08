@@ -1,9 +1,7 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'core/services/mongodb_service.dart';
-import 'firebase_options.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/presentation/provider/auth_provider.dart';
 import 'features/auth/presentation/pages/login_page.dart';
@@ -14,11 +12,6 @@ Future<void> main() async {
 
   // Initialize Environment Variables
   await dotenv.load(fileName: ".env");
-
-  // Initialize Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
 
   // Initialize MongoDB
   await MongoDBService().connect();

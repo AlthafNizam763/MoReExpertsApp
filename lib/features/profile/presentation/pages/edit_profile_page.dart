@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../../core/constants/app_colors.dart';
-import '../../../auth/presentation/provider/auth_provider.dart';
+import 'package:more_experts/core/constants/app_colors.dart';
+import 'package:more_experts/features/auth/presentation/provider/auth_provider.dart';
+import 'package:more_experts/features/profile/domain/models/user_model.dart';
 
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
@@ -15,12 +16,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   // Controllers and initial values for tracking changes
   late final TextEditingController _nameController;
-  final _dobController = TextEditingController(text: '1 Jan 1995');
-  final _phoneController = TextEditingController(text: '+91 98765 43210');
+  late final TextEditingController _dobController;
+  late final TextEditingController _phoneController;
   late final TextEditingController _emailController;
-  final _linkedinController =
-      TextEditingController(text: 'linkedin.com/in/username');
-  final _locationController = TextEditingController(text: 'New York, USA');
+  late final TextEditingController _linkedinController;
+  late final TextEditingController _locationController;
 
   late Map<String, String> _initialValues;
   bool _isModified = false;
@@ -30,11 +30,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
   void initState() {
     super.initState();
     final user = context.read<AuthProvider>().currentUser;
-    final email = user?.email ?? 'user@gmail.com';
-    final name = email.split('@')[0];
 
-    _nameController = TextEditingController(text: name);
-    _emailController = TextEditingController(text: email);
+    _nameController = TextEditingController(text: user?.name ?? '');
+    _emailController = TextEditingController(text: user?.email ?? '');
+    _dobController = TextEditingController(text: user?.dob ?? '');
+    _phoneController = TextEditingController(text: user?.mobile ?? '');
+    _linkedinController = TextEditingController(text: user?.linkedin ?? '');
+    _locationController = TextEditingController(text: user?.address ?? '');
+    _gender = user?.gender ?? 'Male';
 
     // Capture initial values
     _initialValues = {
@@ -107,33 +110,30 @@ class _EditProfilePageState extends State<EditProfilePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Profile Picture with Edit Icon
+              // Profile Picture (Read-only)
               Center(
-                child: Stack(
-                  children: [
-                    const CircleAvatar(
+                child: Consumer<AuthProvider>(
+                  builder: (context, auth, _) {
+                    final user = auth.currentUser;
+                    if (user?.profilePic != null) {
+                      final isBase64 =
+                          user!.profilePic!.startsWith('data:image');
+                      return CircleAvatar(
+                        radius: 50,
+                        backgroundImage: isBase64
+                            ? MemoryImage(Uri.parse(user.profilePic!)
+                                .data!
+                                .contentAsBytes()) as ImageProvider
+                            : NetworkImage(user.profilePic!),
+                      );
+                    }
+                    return const CircleAvatar(
                       radius: 50,
-                      backgroundImage: NetworkImage(
-                        'https://i.pravatar.cc',
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(
-                          color: AppColors.black,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.camera_alt,
-                          color: AppColors.white,
-                          size: 20,
-                        ),
-                      ),
-                    ),
-                  ],
+                      backgroundColor: AppColors.lightGray,
+                      child: Icon(Icons.person,
+                          size: 50, color: AppColors.mediaGray),
+                    );
+                  },
                 ),
               ),
               const SizedBox(height: 32),
@@ -167,8 +167,30 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   prefixIcon: Icons.phone_outlined),
 
               _buildLabel('Email'),
-              _buildTextField(_emailController,
-                  prefixIcon: Icons.email_outlined),
+              Container(
+                width: double.infinity,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                decoration: BoxDecoration(
+                  color: AppColors.lightGray,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.email_outlined, color: AppColors.black),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        _emailController.text,
+                        style: const TextStyle(
+                          color: AppColors.mediaGray,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
 
               const SizedBox(height: 24),
               _buildSectionTitle('Personal Detail'),
@@ -184,15 +206,46 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Profile updated successfully'),
-                          backgroundColor: AppColors.black,
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
-                      Navigator.pop(context);
+                    onPressed: () async {
+                      if (_formKey.currentState!.validate()) {
+                        final authProvider = context.read<AuthProvider>();
+                        final currentUser = authProvider.currentUser;
+
+                        if (currentUser != null) {
+                          // Create updated user object
+                          final updatedUser = UserModel(
+                            id: currentUser.id,
+                            name: _nameController.text,
+                            email: currentUser.email, // Read-only
+                            password: currentUser.password,
+                            package: currentUser.package,
+                            status: currentUser.status,
+                            profilePic: currentUser
+                                .profilePic, // TODO: Update if modified
+                            documents: currentUser.documents,
+                            createdAt: currentUser.createdAt,
+                            address: _locationController.text,
+                            dob: _dobController.text,
+                            gender: _gender,
+                            linkedin: _linkedinController.text,
+                            mobile: _phoneController.text,
+                          );
+
+                          // Call update method
+                          await authProvider.updateUser(updatedUser);
+
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Profile updated successfully'),
+                                backgroundColor: AppColors.black,
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                            Navigator.pop(context);
+                          }
+                        }
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.black,
@@ -247,15 +300,17 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   Widget _buildTextField(TextEditingController controller,
-      {IconData? prefixIcon, IconData? suffixIcon}) {
+      {IconData? prefixIcon, IconData? suffixIcon, bool enabled = true}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: TextFormField(
         controller: controller,
-        style: const TextStyle(color: AppColors.black),
+        enabled: enabled,
+        style:
+            TextStyle(color: enabled ? AppColors.black : AppColors.mediaGray),
         decoration: InputDecoration(
           filled: true,
-          fillColor: AppColors.lightGray,
+          fillColor: enabled ? AppColors.lightGray : Colors.grey[200],
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           border: OutlineInputBorder(
@@ -263,7 +318,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
             borderSide: BorderSide.none,
           ),
           prefixIcon: prefixIcon != null
-              ? Icon(prefixIcon, color: AppColors.black)
+              ? Icon(prefixIcon,
+                  color: enabled ? AppColors.black : AppColors.mediaGray)
               : null,
           suffixIcon: suffixIcon != null
               ? Icon(suffixIcon, color: AppColors.mediaGray)

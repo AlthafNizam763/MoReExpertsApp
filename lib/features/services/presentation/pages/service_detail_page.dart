@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/service_package.dart';
+import '../../../auth/presentation/provider/auth_provider.dart';
 
 class ServiceDetailPage extends StatelessWidget {
   final String serviceTitle;
@@ -25,52 +27,72 @@ class ServiceDetailPage extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Status',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+      body: Consumer<AuthProvider>(
+        builder: (context, authProvider, _) {
+          final user = authProvider.currentUser;
+          if (user == null) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final docs = user.documents;
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Status',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                ..._buildStatusList(docs),
+              ],
             ),
-            const SizedBox(height: 20),
-            ..._buildStatusList(),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 
-  List<Widget> _buildStatusList() {
-    if (serviceTitle != 'Resume') {
-      return [
-        _buildStatusItem(
-          title: serviceTitle,
-          status: 'In Progress',
-          icon: Icons.assignment_outlined,
-        ),
-      ];
-    }
-
+  List<Widget> _buildStatusList(dynamic docs) {
     List<Widget> items = [];
 
-    // 1. Resume PDF (Always for all)
-    items.add(_buildStatusItem(
-      title: 'Resume PDF',
-      status: 'Completed',
-      icon: Icons.picture_as_pdf,
-    ));
+    if (serviceTitle == 'Resume') {
+      // 1. Resume PDF (serviceGuide)
+      final pdfCompleted =
+          docs.serviceGuide != null && docs.serviceGuide!.isNotEmpty;
+      items.add(_buildStatusItem(
+        title: 'Resume PDF',
+        status: pdfCompleted ? 'Completed' : 'In Progress',
+        icon: Icons.picture_as_pdf,
+      ));
 
-    // 2. Resume Word (Silver 2nd and above)
-    if (package != ServicePackage.silver) {
+      // 2. Resume Word (contract)
+      final wordCompleted = docs.contract != null && docs.contract!.isNotEmpty;
       items.add(_buildStatusItem(
         title: 'Resume Word Document',
-        status: 'In Progress',
+        status: wordCompleted ? 'Completed' : 'In Progress',
         icon: Icons.description,
+      ));
+    } else if (serviceTitle == 'Cover Letter') {
+      // Cover Letter
+      final clCompleted =
+          docs.coverLetter != null && docs.coverLetter!.isNotEmpty;
+      items.add(_buildStatusItem(
+        title: 'Cover Letter',
+        status: clCompleted ? 'Completed' : 'In Progress',
+        icon: Icons.description_outlined,
+      ));
+    } else {
+      // Default / Other services
+      items.add(_buildStatusItem(
+        title: serviceTitle,
+        status: 'In Progress', // Logic not yet defined for others
+        icon: Icons.assignment_outlined,
       ));
     }
 

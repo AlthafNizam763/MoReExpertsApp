@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:more_experts/features/auth/presentation/provider/auth_provider.dart';
 import '../../../../core/constants/app_colors.dart';
 
 class ChangePasswordPage extends StatefulWidget {
@@ -10,9 +12,22 @@ class ChangePasswordPage extends StatefulWidget {
 
 class _ChangePasswordPageState extends State<ChangePasswordPage> {
   final _formKey = GlobalKey<FormState>();
+
+  final _currentPasswordController = TextEditingController();
+  final _newPasswordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+
   bool _obscureCurrent = true;
   bool _obscureNew = true;
   bool _obscureConfirm = true;
+
+  @override
+  void dispose() {
+    _currentPasswordController.dispose();
+    _newPasswordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,6 +59,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
               ),
               const SizedBox(height: 32),
               _buildPasswordField(
+                controller: _currentPasswordController,
                 label: 'Current Password',
                 obscureText: _obscureCurrent,
                 onToggle: () =>
@@ -51,12 +67,14 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
               ),
               const SizedBox(height: 20),
               _buildPasswordField(
+                controller: _newPasswordController,
                 label: 'New Password',
                 obscureText: _obscureNew,
                 onToggle: () => setState(() => _obscureNew = !_obscureNew),
               ),
               const SizedBox(height: 20),
               _buildPasswordField(
+                controller: _confirmPasswordController,
                 label: 'Confirm New Password',
                 obscureText: _obscureConfirm,
                 onToggle: () =>
@@ -66,31 +84,77 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
               SizedBox(
                 width: double.infinity,
                 height: 56,
-                child: ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      // Handle password update logic
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text('Password updated successfully')),
-                      );
-                      Navigator.pop(context);
-                    }
+                child: Consumer<AuthProvider>(
+                  builder: (context, auth, _) {
+                    return ElevatedButton(
+                      onPressed: auth.status == AuthStatus.loading
+                          ? null
+                          : () async {
+                              if (_formKey.currentState!.validate()) {
+                                final currentPassword =
+                                    _currentPasswordController.text;
+                                final newPassword = _newPasswordController.text;
+                                final confirmPassword =
+                                    _confirmPasswordController.text;
+
+                                if (newPassword != confirmPassword) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Passwords do not match'),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                  return;
+                                }
+
+                                try {
+                                  await auth.changePassword(
+                                      currentPassword, newPassword);
+
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                            'Password updated successfully'),
+                                        backgroundColor: AppColors.black,
+                                        behavior: SnackBarBehavior.floating,
+                                      ),
+                                    );
+                                    Navigator.pop(context);
+                                  }
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(auth.errorMessage ??
+                                            'Failed to update password'),
+                                        backgroundColor: Colors.red,
+                                        behavior: SnackBarBehavior.floating,
+                                      ),
+                                    );
+                                  }
+                                }
+                              }
+                            },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.black,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: auth.status == AuthStatus.loading
+                          ? const CircularProgressIndicator(
+                              color: AppColors.white)
+                          : const Text(
+                              'Update Password',
+                              style: TextStyle(
+                                color: AppColors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                    );
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.black,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'Update Password',
-                    style: TextStyle(
-                      color: AppColors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
                 ),
               ),
             ],
@@ -101,9 +165,11 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
   }
 
   Widget _buildPasswordField({
+    required TextEditingController controller,
     required String label,
     required bool obscureText,
     required VoidCallback onToggle,
+    String? Function(String?)? validator,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -118,7 +184,15 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
         ),
         const SizedBox(height: 8),
         TextFormField(
+          controller: controller,
           obscureText: obscureText,
+          validator: validator ??
+              (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter $label';
+                }
+                return null;
+              },
           decoration: InputDecoration(
             hintText: 'Enter $label',
             hintStyle: const TextStyle(color: AppColors.lightGray),

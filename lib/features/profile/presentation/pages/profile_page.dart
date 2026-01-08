@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../../core/constants/app_colors.dart';
-import '../../../auth/presentation/provider/auth_provider.dart';
-import '../../../services/presentation/pages/package_list_page.dart';
+import 'package:more_experts/core/constants/app_colors.dart';
+import 'package:more_experts/features/auth/presentation/provider/auth_provider.dart';
+import 'package:more_experts/features/services/presentation/pages/package_list_page.dart';
 import 'edit_profile_page.dart';
 import 'change_password_page.dart';
 import 'about_app_page.dart';
@@ -29,24 +29,33 @@ class ProfilePage extends StatelessWidget {
         child: Column(
           children: [
             const SizedBox(height: 20),
-            // Header Section
-            const CircleAvatar(
-              radius: 40,
-              backgroundImage: NetworkImage(
-                'https://i.pravatar.cc', // Placeholder
-              ),
-            ),
-            const SizedBox(height: 12),
             Consumer<AuthProvider>(
               builder: (context, auth, _) {
                 final user = auth.currentUser;
-                final email = user?.email ?? 'user@gmail.com';
-                final userName = email.split('@')[0];
+                if (user == null) return const SizedBox.shrink();
 
                 return Column(
                   children: [
+                    if (user.profilePic != null)
+                      CircleAvatar(
+                        radius: 40,
+                        backgroundImage:
+                            user.profilePic!.startsWith('data:image')
+                                ? MemoryImage(Uri.parse(user.profilePic!)
+                                    .data!
+                                    .contentAsBytes()) as ImageProvider
+                                : NetworkImage(user.profilePic!),
+                      )
+                    else
+                      const CircleAvatar(
+                        radius: 40,
+                        backgroundColor: AppColors.lightGray,
+                        child: Icon(Icons.person,
+                            size: 40, color: AppColors.mediaGray),
+                      ),
+                    const SizedBox(height: 12),
                     Text(
-                      userName,
+                      user.name,
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -54,7 +63,7 @@ class ProfilePage extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      email,
+                      user.email,
                       style: const TextStyle(
                         fontSize: 14,
                         color: AppColors.mediaGray,
