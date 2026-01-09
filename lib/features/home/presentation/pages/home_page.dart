@@ -11,10 +11,13 @@ import 'package:more_experts/features/chat/presentation/pages/chat_page.dart';
 import 'package:more_experts/features/profile/domain/models/user_model.dart';
 import 'package:more_experts/core/widgets/spotlight_nav_bar.dart';
 import 'package:more_experts/features/profile/presentation/pages/notifications_page.dart';
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:open_filex/open_filex.dart';
+import 'package:more_experts/features/home/data/feedback_service.dart';
+import 'package:more_experts/features/home/presentation/pages/feedback_page.dart'; // Ensure this is present if needed
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -67,8 +70,11 @@ class DashboardTab extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.star_border),
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Feedback feature coming soon!')),
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const FeedbackPage(),
+                ),
               );
             },
           ),
@@ -99,10 +105,41 @@ class DashboardTab extends StatelessWidget {
 
             const SizedBox(height: 10),
 
+            // Analytics Cards
+            Row(
+              children: [
+                Expanded(
+                  child: _buildStatCard(
+                    context,
+                    'Resume Completed',
+                    '2745',
+                    Colors.purple,
+                    const SparklinePainter(color: Colors.purple),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildStatCard(
+                    context,
+                    'Placed Candidates',
+                    '86%',
+                    Colors.blue,
+                    const RadialPercentPainter(
+                        percent: 0.86, color: Colors.blue),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 20),
+
             // Active Service Card (Multi-Package Support)
             _buildAtmCard(context, user, userName, creationDate),
 
-            const SizedBox(height: 10),
+            const SizedBox(height: 20),
+
+            // Feedback Section
+            _buildFeedbackSection(),
 
             // Documents Section
             Row(
@@ -134,7 +171,7 @@ class DashboardTab extends StatelessWidget {
         Expanded(
           child: _buildDocumentCard(
             context,
-            'Service Guide',
+            'Guide',
             'PDF',
             Icons.picture_as_pdf,
             Colors.red.shade100,
@@ -497,6 +534,164 @@ class DashboardTab extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildFeedbackSection() {
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: FeedbackService().getFeedback(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'What our users say',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            FeedbackCarousel(feedbackList: snapshot.data!),
+            const SizedBox(height: 20),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildStatCard(BuildContext context, String title, String value,
+      Color color, CustomPainter painter) {
+    return Container(
+      height: 180,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[600],
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          const Spacer(),
+          SizedBox(
+            height: 40,
+            width: double.infinity,
+            child: CustomPaint(
+              painter: painter,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class SparklinePainter extends CustomPainter {
+  final Color color;
+
+  const SparklinePainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 3
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+
+    final path = Path();
+    // Simulate a random-looking positive trend
+    path.moveTo(0, size.height * 0.8);
+    path.quadraticBezierTo(size.width * 0.2, size.height * 0.9,
+        size.width * 0.4, size.height * 0.5);
+    path.quadraticBezierTo(size.width * 0.6, size.height * 0.7,
+        size.width * 0.8, size.height * 0.2);
+    path.lineTo(size.width, size.height * 0.3);
+
+    // Add a gradient fill below
+    final fillPath = Path.from(path);
+    fillPath.lineTo(size.width, size.height);
+    fillPath.lineTo(0, size.height);
+    fillPath.close();
+
+    final gradientPaint = Paint()
+      ..shader = LinearGradient(
+        colors: [color.withOpacity(0.2), color.withOpacity(0.0)],
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
+
+    canvas.drawPath(fillPath, gradientPaint);
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class RadialPercentPainter extends CustomPainter {
+  final double percent;
+  final Color color;
+
+  const RadialPercentPainter({required this.percent, required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    // Constrain radius to fit within the available height/width
+    final radius = (size.height < size.width ? size.height : size.width) / 2;
+
+    final bgPaint = Paint()
+      ..color = color.withOpacity(0.1)
+      ..strokeWidth = 8
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    final fgPaint = Paint()
+      ..color = color
+      ..strokeWidth = 8
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+
+    canvas.drawCircle(center, radius, bgPaint);
+
+    // Draw arc from top (-pi/2)
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      -1.5708, // -pi/2
+      2 * 3.14159 * percent,
+      false,
+      fgPaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant RadialPercentPainter oldDelegate) =>
+      oldDelegate.percent != percent;
 }
 
 class MeLogoPainter extends CustomPainter {
@@ -700,4 +895,141 @@ class ChipPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class FeedbackCarousel extends StatefulWidget {
+  final List<Map<String, dynamic>> feedbackList;
+
+  const FeedbackCarousel({super.key, required this.feedbackList});
+
+  @override
+  State<FeedbackCarousel> createState() => _FeedbackCarouselState();
+}
+
+class _FeedbackCarouselState extends State<FeedbackCarousel> {
+  int _currentIndex = 0;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.feedbackList.length > 1) {
+      _startTimer();
+    }
+  }
+
+  void _startTimer() {
+    _timer = Timer.periodic(const Duration(seconds: 4), (timer) {
+      if (mounted) {
+        setState(() {
+          _currentIndex = (_currentIndex + 1) % widget.feedbackList.length;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.feedbackList.isEmpty) return const SizedBox.shrink();
+
+    final feedback = widget.feedbackList[_currentIndex];
+
+    return AnimatedSwitcher(
+        duration: const Duration(milliseconds: 500),
+        transitionBuilder: (Widget child, Animation<double> animation) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+        child: Container(
+          key: ValueKey<int>(_currentIndex),
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.03),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min, // Wrap content height
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 18,
+                    backgroundImage: feedback['profilePic'] != null &&
+                            feedback['profilePic'].toString().isNotEmpty
+                        ? (feedback['profilePic'].toString().startsWith('http')
+                            ? NetworkImage(feedback['profilePic'])
+                            : MemoryImage(base64Decode(feedback['profilePic']
+                                .toString()
+                                .split(',')
+                                .last)) as ImageProvider)
+                        : null,
+                    backgroundColor: Colors.grey[200],
+                    child: feedback['profilePic'] == null ||
+                            feedback['profilePic'].toString().isEmpty
+                        ? const Icon(Icons.person, size: 18, color: Colors.grey)
+                        : null,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          feedback['name'] ?? 'Anonymous',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Row(
+                          children: List.generate(
+                            5,
+                            (starIndex) => Icon(
+                              starIndex < (feedback['rating'] ?? 0)
+                                  ? Icons.star
+                                  : Icons.star_border,
+                              size: 14,
+                              color: Colors.amber,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                feedback['feedbackText'] ?? '',
+                style: TextStyle(
+                  color: Colors.grey[700],
+                  fontSize: 13,
+                  height: 1.4,
+                ),
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        )
+            .animate(onPlay: (controller) => controller.forward(from: 0))
+            .shimmer(duration: 1200.ms, color: Colors.white.withOpacity(0.8)));
+  }
 }

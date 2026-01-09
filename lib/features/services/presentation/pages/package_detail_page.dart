@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/service_package.dart';
 
@@ -148,14 +149,13 @@ class PackageDetailPage extends StatelessWidget {
               style: TextStyle(color: AppColors.mediaGray, fontSize: 14),
             ),
             const SizedBox(height: 24),
-            // QR Placeholder / Image representation
+            // QR Code
             Container(
-              width: 180,
-              height: 180,
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppColors.borderGray, width: 2),
+                border: Border.all(color: AppColors.borderGray),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.05),
@@ -164,23 +164,32 @@ class PackageDetailPage extends StatelessWidget {
                   ),
                 ],
               ),
-              child: const Icon(
-                Icons.qr_code_2,
-                size: 140,
-                color: AppColors.black,
+              child: Image.asset(
+                'assets/images/qr_code.png',
+                width: 200,
+                height: 200,
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
-              '6282 500 442',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: AppColors.success,
-                letterSpacing: 2.0,
+            // UPI ID
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              decoration: BoxDecoration(
+                color: AppColors.primaryBlue.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(15),
+                border:
+                    Border.all(color: AppColors.primaryBlue.withOpacity(0.2)),
+              ),
+              child: SelectableText(
+                'kpzajmal1-2@oksbi',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primaryBlue,
+                ),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 24),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
@@ -201,15 +210,9 @@ class PackageDetailPage extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: () {
-                  // Logic to copy number
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text('Contact info copied to clipboard')),
-                  );
-                },
-                icon: const Icon(Icons.copy),
-                label: const Text('Copy Payment Number'),
+                onPressed: () => _launchUPI(context),
+                icon: const Icon(Icons.payment),
+                label: const Text('Payment'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.black,
                   foregroundColor: AppColors.white,
@@ -261,5 +264,28 @@ class PackageDetailPage extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _launchUPI(BuildContext context) async {
+    // Extract amount from price string (e.g., "₹499" -> "499")
+    final amount = package.price.replaceAll(RegExp(r'[^0-9]'), '');
+
+    final upiUrl = Uri.parse(
+        'upi://pay?pa=kpzajmal1-2@oksbi&pn=MoRe Experts&am=$amount&cu=INR&tn=${Uri.encodeComponent(package.name)}');
+
+    try {
+      if (!await launchUrl(upiUrl, mode: LaunchMode.externalApplication)) {
+        throw Exception('Could not launch payment app');
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('No UPI app found or unable to launch'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
   }
 }

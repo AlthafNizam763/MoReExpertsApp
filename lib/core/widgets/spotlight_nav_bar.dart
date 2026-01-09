@@ -15,7 +15,7 @@ class SpotlightNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final navItems = [
       _NavItem(Icons.home_outlined, 'Home'),
-      _NavItem(Icons.work_outline, 'Services'),
+      _NavItem(Icons.checklist_rtl_outlined, 'Status'),
       _NavItem(Icons.chat_bubble_outline, 'Chat'),
       _NavItem(Icons.settings_outlined, 'Settings'),
     ];

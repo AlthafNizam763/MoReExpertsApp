@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:more_experts/core/constants/app_colors.dart';
 import 'package:more_experts/features/auth/presentation/provider/auth_provider.dart';
 import 'package:more_experts/features/services/presentation/pages/package_list_page.dart';
+import 'package:more_experts/features/services/presentation/pages/services_menu_page.dart';
 import 'edit_profile_page.dart';
 import 'change_password_page.dart';
 import 'about_app_page.dart';
@@ -87,14 +88,15 @@ class ProfilePage extends StatelessWidget {
                 );
               },
             ),
+
             _ProfileMenuItem(
               icon: Icons.card_membership_outlined,
-              label: 'Available Packages',
+              label: 'Service & Packages',
               onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => const PackageListPage()),
+                      builder: (context) => const ServicesMenuPage()),
                 );
               },
             ),
