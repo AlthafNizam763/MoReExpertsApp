@@ -131,14 +131,16 @@ class DashboardTab extends StatelessWidget {
     // Service Guide
     if (user.documents.serviceGuide != null) {
       documents.add(
-        _buildDocumentCard(
-          context,
-          'Service Guide.pdf',
-          'PDF Document • 2.4 MB',
-          Icons.picture_as_pdf,
-          Colors.red.shade100,
-          Colors.red,
-          user.documents.serviceGuide,
+        Expanded(
+          child: _buildDocumentCard(
+            context,
+            'Service Guide',
+            'PDF',
+            Icons.picture_as_pdf,
+            Colors.red.shade100,
+            Colors.red,
+            user.documents.serviceGuide,
+          ),
         ),
       );
     }
@@ -146,14 +148,16 @@ class DashboardTab extends StatelessWidget {
     // Contract (Silver2 and above)
     if (package != ServicePackage.silver && user.documents.contract != null) {
       documents.add(
-        _buildDocumentCard(
-          context,
-          'Contract.docx',
-          'Word Document • 1.1 MB',
-          Icons.description,
-          Colors.blue.shade100,
-          Colors.blue,
-          user.documents.contract,
+        Expanded(
+          child: _buildDocumentCard(
+            context,
+            'Contract',
+            'DOCX',
+            Icons.description,
+            Colors.blue.shade100,
+            Colors.blue,
+            user.documents.contract,
+          ),
         ),
       );
     }
@@ -163,40 +167,36 @@ class DashboardTab extends StatelessWidget {
         package != ServicePackage.silver2 &&
         user.documents.coverLetter != null) {
       documents.add(
-        _buildDocumentCard(
-          context,
-          'Cover Letter.pdf',
-          'PDF Document • 850 KB',
-          Icons.badge_outlined,
-          Colors.orange.shade100,
-          Colors.orange,
-          user.documents.coverLetter,
+        Expanded(
+          child: _buildDocumentCard(
+            context,
+            'Cover Letter',
+            'PDF',
+            Icons.badge_outlined,
+            Colors.orange.shade100,
+            Colors.orange,
+            user.documents.coverLetter,
+          ),
         ),
       );
     }
 
-    // ID Proof
-    // if (user.documents.idProof != null) {
-    //   documents.add(
-    //     _buildDocumentCard(
-    //       context,
-    //       'ID Proof.pdf',
-    //       'PDF Document • 1.2 MB',
-    //       Icons.fingerprint,
-    //       Colors.green.shade100,
-    //       Colors.green,
-    //       user.documents.idProof,
-    //     ),
-    //   );
-    // }
+    if (documents.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
-    return Column(
-      children: documents
-          .map((doc) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: doc,
-              ))
-          .toList(),
+    // Add spacing between items
+    List<Widget> spacedDocuments = [];
+    for (int i = 0; i < documents.length; i++) {
+      spacedDocuments.add(documents[i]);
+      if (i < documents.length - 1) {
+        spacedDocuments.add(const SizedBox(width: 12));
+      }
+    }
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: spacedDocuments,
     );
   }
 
@@ -455,7 +455,7 @@ class DashboardTab extends StatelessWidget {
       onTap: () => _openDocument(context, title, base64Content),
       borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
@@ -468,35 +468,30 @@ class DashboardTab extends StatelessWidget {
             ),
           ],
         ),
-        child: Row(
+        child: Column(
           children: [
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: bgColor,
-                borderRadius: BorderRadius.circular(12),
+                shape: BoxShape.circle,
               ),
-              child: Icon(icon, color: iconColor),
+              child: Icon(icon, color: iconColor, size: 28),
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
-                  ),
-                ],
-              ),
+            const SizedBox(height: 12),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
             ),
-            Icon(Icons.chevron_right, color: Colors.grey.shade400),
+            const SizedBox(height: 4),
+            Text(
+              subtitle,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey.shade600, fontSize: 11),
+            ),
           ],
         ),
       ),
