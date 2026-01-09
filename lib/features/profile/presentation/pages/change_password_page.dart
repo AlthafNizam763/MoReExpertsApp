@@ -137,7 +137,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                               }
                             },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.black,
+                        backgroundColor: AppColors.primaryBlue,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -208,7 +208,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.black),
+              borderSide: const BorderSide(color: AppColors.primaryBlue),
             ),
             suffixIcon: IconButton(
               icon: Icon(

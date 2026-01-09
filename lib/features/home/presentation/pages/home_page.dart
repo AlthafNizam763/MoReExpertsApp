@@ -65,6 +65,14 @@ class DashboardTab extends StatelessWidget {
         automaticallyImplyLeading: false,
         actions: [
           IconButton(
+            icon: const Icon(Icons.star_border),
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Feedback feature coming soon!')),
+              );
+            },
+          ),
+          IconButton(
             icon: const Icon(notifications),
             onPressed: () {
               Navigator.push(
@@ -101,7 +109,7 @@ class DashboardTab extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  'Documents',
+                  'Your Documents',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ],

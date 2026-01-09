@@ -7,28 +7,28 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
-      primaryColor: AppColors.black,
+      primaryColor: AppColors.primaryBlue,
       scaffoldBackgroundColor: AppColors.white,
 
       // Typography
       textTheme: GoogleFonts.outfitTextTheme().apply(
-        bodyColor: AppColors.black,
-        displayColor: AppColors.black,
+        bodyColor: AppColors.primaryBlue,
+        displayColor: AppColors.primaryBlue,
       ),
 
       // App Bar
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.white,
-        foregroundColor: AppColors.black,
+        foregroundColor: AppColors.primaryBlue,
         elevation: 0,
         centerTitle: true,
-        iconTheme: IconThemeData(color: AppColors.black),
+        iconTheme: IconThemeData(color: AppColors.primaryBlue),
       ),
 
       // Buttons
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.black,
+          backgroundColor: AppColors.primaryBlue,
           foregroundColor: AppColors.white,
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -56,7 +56,8 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: AppColors.black, width: 1.5),
+          borderSide:
+              const BorderSide(color: AppColors.primaryBlue, width: 1.5),
         ),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 16),

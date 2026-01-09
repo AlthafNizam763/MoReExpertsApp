@@ -56,7 +56,9 @@ class SpotlightNavBar extends StatelessWidget {
                     duration: const Duration(milliseconds: 300),
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: isSelected ? Colors.black : Colors.transparent,
+                      color: isSelected
+                          ? const Color.fromRGBO(27, 114, 181, 1)
+                          : Colors.transparent,
                       shape: BoxShape.circle,
                     ),
                     child: Icon(

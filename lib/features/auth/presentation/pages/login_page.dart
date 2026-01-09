@@ -34,7 +34,7 @@ class _LoginPageState extends State<LoginPage> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     // Logo or Header
-                    Image.asset('assets/images/logo.jpg',
+                    Image.asset('assets/images/logo.jpeg',
                             width: 120, height: 120)
                         .animate()
                         .fade()

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class AppColors {
   // Primary Monochromes
-  static const Color black = Color(0xFF000000);
+  static const Color black = Color(0xFF212121);
   static const Color white = Color(0xFFFFFFFF);
 
   // Grays for nuances
@@ -19,7 +19,7 @@ class AppColors {
   // Interaction
   static const Color splashColor = Color(0x1AFFFFFF); // Low opacity white
   static const Color primaryBlue =
-      Color(0xFF2196F3); // Blue for buttons and active states
+      Color(0xFF1b72b5); // Blue for buttons and active states
   static const Color borderGray =
       Color(0xFFE0E0E0); // Gray for borders and dividers
 }

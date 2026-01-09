@@ -127,10 +127,14 @@ class UserModel {
   String get updateStatusText {
     if (package == ServicePackage.premium2) return 'LIFE TIME VALID';
 
-    final progress = updateProgress;
-    if (progress <= 0) return 'EXPIRED';
+    final expiry = _expiryDate;
+    if (expiry == null) return 'EXPIRED';
 
-    return '${(progress * 100).toInt()}%';
+    final now = DateTime.now();
+    if (now.isAfter(expiry)) return 'Updation Expired';
+
+    final remainingDays = expiry.difference(now).inDays;
+    return 'Expires in $remainingDays days';
   }
 
   DateTime? get _expiryDate {

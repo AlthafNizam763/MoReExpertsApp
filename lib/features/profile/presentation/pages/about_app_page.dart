@@ -29,7 +29,7 @@ class AboutAppPage extends StatelessWidget {
             ClipRRect(
               borderRadius: BorderRadius.circular(24),
               child: Image.asset(
-                'assets/images/logo.jpg',
+                'assets/images/logo.jpeg',
                 height: 100,
                 width: 100,
                 fit: BoxFit.cover,
