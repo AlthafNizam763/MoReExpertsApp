@@ -4,6 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'core/services/mongodb_service.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/presentation/provider/auth_provider.dart';
+import 'features/chat/presentation/providers/chat_provider.dart';
 import 'features/auth/presentation/pages/login_page.dart';
 import 'features/home/presentation/pages/home_page.dart';
 
@@ -20,6 +21,7 @@ Future<void> main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => ChatProvider()),
       ],
       child: const MoreExpertsApp(),
     ),
