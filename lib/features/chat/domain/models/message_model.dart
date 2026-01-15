@@ -1,43 +1,70 @@
-import 'package:mongo_dart/mongo_dart.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class MessageModel {
   final String id;
-  final String content;
-  final String senderId;
+  final String text; // Was content
+  final String sender; // Was senderId
+  final String role; // New
+  final String conversationId; // New
   final DateTime timestamp;
   final bool isRead;
-  final bool isMe; // Helper field for UI, not stored in DB
+  final bool isMe; // Helper
 
   MessageModel({
     required this.id,
-    required this.content,
-    required this.senderId,
+    required this.text,
+    required this.sender,
+    required this.role,
+    required this.conversationId,
     required this.timestamp,
     this.isRead = false,
     this.isMe = false,
   });
 
-  factory MessageModel.fromJson(
-      Map<String, dynamic> json, String currentUserId) {
-    final id = json['_id'];
+  // Helper backward compatibility or simple getter if UI uses 'content'
+  String get content => text;
+
+  factory MessageModel.fromJson(Map<String, dynamic> json, String currentUserId,
+      {String? id}) {
     return MessageModel(
-      id: id is ObjectId ? id.toHexString() : id.toString(),
-      content: json['content'] as String,
-      senderId: json['senderId'] as String,
-      timestamp: json['timestamp'] is DateTime
-          ? json['timestamp']
-          : DateTime.parse(json['timestamp'].toString()),
+      id: id ?? (json['id'] ?? ''),
+      text: json['text'] ?? json['content'] ?? '',
+      sender: json['sender'] ?? json['senderId'] ?? '',
+      role: json['role'] ?? 'user',
+      conversationId: json['conversationId'] ?? '',
+      timestamp: _parseTimestamp(json['timestamp'] ?? json['createdAt']),
       isRead: json['isRead'] ?? false,
-      isMe: json['senderId'] == currentUserId,
+      isMe: (json['sender'] ?? json['senderId']) == currentUserId,
     );
+  }
+
+  static DateTime _parseTimestamp(dynamic timestamp) {
+    if (timestamp == null) return DateTime.now();
+    if (timestamp is Timestamp) return timestamp.toDate();
+    if (timestamp is String) {
+      try {
+        return DateTime.parse(timestamp);
+      } catch (e) {
+        return DateTime.now();
+      }
+    }
+    return DateTime.now();
+  }
+
+  factory MessageModel.fromFirestore(
+      DocumentSnapshot doc, String currentUserId) {
+    final data = doc.data() as Map<String, dynamic>;
+    return MessageModel.fromJson(data, currentUserId, id: doc.id);
   }
 
   Map<String, dynamic> toJson() {
     return {
-      '_id': ObjectId.fromHexString(id),
-      'content': content,
-      'senderId': senderId,
-      'timestamp': timestamp.toIso8601String(),
+      'text': text,
+      'sender': sender,
+      'role': role,
+      'conversationId': conversationId,
+      'timestamp': Timestamp.fromDate(timestamp),
+      'createdAt': Timestamp.fromDate(timestamp), // Redundant but requested
       'isRead': isRead,
     };
   }

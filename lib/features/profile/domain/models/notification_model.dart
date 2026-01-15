@@ -1,7 +1,7 @@
-import 'package:mongo_dart/mongo_dart.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class NotificationModel {
-  final ObjectId id;
+  final String id;
   final String title;
   final String description;
   final String type; // 'update', 'offer', etc.
@@ -17,28 +17,32 @@ class NotificationModel {
     this.isRead = false,
   });
 
-  factory NotificationModel.fromJson(Map<String, dynamic> json) {
+  factory NotificationModel.fromJson(Map<String, dynamic> json, {String? id}) {
     return NotificationModel(
-      id: json['_id'] is ObjectId
-          ? json['_id']
-          : ObjectId.parse(json['_id'].toString()),
+      id: id ?? (json['id'] ?? ''),
       title: json['title'] ?? '',
       description: json['description'] ?? '',
       type: json['type'] ?? 'general',
       createdAt: json['createdAt'] != null
-          ? DateTime.parse(json['createdAt'].toString())
+          ? (json['createdAt'] is Timestamp
+              ? (json['createdAt'] as Timestamp).toDate()
+              : DateTime.parse(json['createdAt'].toString()))
           : DateTime.now(),
       isRead: json['isRead'] ?? false,
     );
   }
 
+  factory NotificationModel.fromFirestore(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    return NotificationModel.fromJson(data, id: doc.id);
+  }
+
   Map<String, dynamic> toJson() {
     return {
-      '_id': id,
       'title': title,
       'description': description,
       'type': type,
-      'createdAt': createdAt.toIso8601String(),
+      'createdAt': Timestamp.fromDate(createdAt),
       'isRead': isRead,
     };
   }

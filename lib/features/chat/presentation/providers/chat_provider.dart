@@ -8,6 +8,7 @@ class ChatProvider extends ChangeNotifier {
   final ChatService _chatService = ChatService();
   List<MessageModel> _messages = [];
   bool _isLoading = false;
+  StreamSubscription<List<MessageModel>>? _messagesSubscription;
 
   List<MessageModel> get messages => _messages;
   bool get isLoading => _isLoading;
@@ -16,56 +17,28 @@ class ChatProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    // 1. Fetch History from DB (MongoDB)
-    fetchHistory(currentUserId);
-
-    // 2. Initialize Socket connection
-    _chatService.initSocket(currentUserId);
-
-    // 3. Listen for new messages
-    _chatService.onMessageReceived((newMessage) {
-      _messages.add(newMessage);
-      // Sort if needed, but usually append is fine for time-ordered
-      notifyListeners();
-    }, currentUserId);
+    _messagesSubscription?.cancel();
+    _messagesSubscription =
+        _chatService.getMessagesStream(currentUserId).listen(
+      (messages) {
+        _messages = messages;
+        _isLoading = false;
+        notifyListeners();
+      },
+      onError: (error) {
+        log('Error listening to chat stream: $error');
+        _isLoading = false;
+        notifyListeners();
+      },
+    );
   }
 
-  Future<void> fetchHistory(String currentUserId) async {
-    try {
-      final history = await _chatService.getMessages(currentUserId);
-      _messages = history;
-    } catch (e) {
-      log('Error fetching chat history: $e');
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  Future<void> sendMessage(String content, String currentUserId) async {
+  Future<void> sendMessage(
+      String content, String currentUserId, String userName) async {
     if (content.trim().isEmpty) return;
 
     try {
-      _chatService.sendMessage(content.trim(), currentUserId);
-
-      // Optimistic Update: Add message immediately to UI
-      // Note: We need a temporary ID until server confirms, but for simple chat
-      // we can just add it. If server echoes back, we might get duplicate if not handled.
-      // Ideally, wait for server ack or echo.
-      // For now, let's assume server broadcoasts back to us too, or we just rely on event.
-      // If server does NOT echo back to sender, we must add it here:
-      /*
-      final tempMessage = MessageModel(
-        id: DateTime.now().millisecondsSinceEpoch.toString(), // Temp ID
-        content: content.trim(),
-        senderId: currentUserId,
-        timestamp: DateTime.now(),
-        isRead: false,
-        isMe: true,
-      );
-      _messages.add(tempMessage);
-      notifyListeners();
-      */
+      await _chatService.sendMessage(content.trim(), currentUserId, userName);
     } catch (e) {
       log('Error sending message: $e');
       rethrow;
@@ -74,6 +47,7 @@ class ChatProvider extends ChangeNotifier {
 
   @override
   void dispose() {
+    _messagesSubscription?.cancel();
     _chatService.dispose();
     super.dispose();
   }

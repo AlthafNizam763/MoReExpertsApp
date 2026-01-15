@@ -56,7 +56,11 @@ class _ChatPageState extends State<ChatPage> {
 
     _messageController.clear();
     try {
-      await chatProvider.sendMessage(content, authProvider.currentUser!.id);
+      await chatProvider.sendMessage(
+        content,
+        authProvider.currentUser!.id,
+        authProvider.currentUser!.name,
+      );
       _scrollToBottom();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(

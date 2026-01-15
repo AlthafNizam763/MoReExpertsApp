@@ -166,10 +166,56 @@ class DashboardTab extends StatelessWidget {
     final package = user.package;
 
     // Service Guide
-    if (user.documents.serviceGuide != null) {
-      documents.add(
-        Expanded(
-          child: _buildDocumentCard(
+    if (package == ServicePackage.premium ||
+        package == ServicePackage.premium2) {
+      // 1. Resume - Colour
+      if (user.documents.serviceGuide != null) {
+        documents.add(
+          _buildDocumentCard(
+            context,
+            'Resume (Colour)',
+            'PDF',
+            Icons.picture_as_pdf,
+            Colors.red.shade100,
+            Colors.red,
+            user.documents.serviceGuide,
+          ),
+        );
+      }
+
+      // 2. Resume - B&W
+      if (user.documents.serviceGuide2 != null) {
+        documents.add(
+          _buildDocumentCard(
+            context,
+            'Service Guide 2',
+            'PDF',
+            Icons.picture_as_pdf,
+            Colors.grey.shade300,
+            Colors.black,
+            user.documents.serviceGuide2,
+          ),
+        );
+      }
+      // 3. Resume - Horizontal
+      if (user.documents.serviceGuide3 != null) {
+        documents.add(
+          _buildDocumentCard(
+            context,
+            'Service Guide 3',
+            'PDF',
+            Icons.picture_as_pdf,
+            Colors.blue.shade100,
+            Colors.blue,
+            user.documents.serviceGuide3,
+          ),
+        );
+      }
+    } else {
+      // Standard Guide for other packages
+      if (user.documents.serviceGuide != null) {
+        documents.add(
+          _buildDocumentCard(
             context,
             'Guide',
             'PDF',
@@ -178,23 +224,21 @@ class DashboardTab extends StatelessWidget {
             Colors.red,
             user.documents.serviceGuide,
           ),
-        ),
-      );
+        );
+      }
     }
 
     // Contract (Silver2 and above)
     if (package != ServicePackage.silver && user.documents.contract != null) {
       documents.add(
-        Expanded(
-          child: _buildDocumentCard(
-            context,
-            'Contract',
-            'DOCX',
-            Icons.description,
-            Colors.blue.shade100,
-            Colors.blue,
-            user.documents.contract,
-          ),
+        _buildDocumentCard(
+          context,
+          'Contract',
+          'DOCX',
+          Icons.description,
+          Colors.blue.shade100,
+          Colors.blue,
+          user.documents.contract,
         ),
       );
     }
@@ -204,16 +248,14 @@ class DashboardTab extends StatelessWidget {
         package != ServicePackage.silver2 &&
         user.documents.coverLetter != null) {
       documents.add(
-        Expanded(
-          child: _buildDocumentCard(
-            context,
-            'Cover Letter',
-            'PDF',
-            Icons.badge_outlined,
-            Colors.orange.shade100,
-            Colors.orange,
-            user.documents.coverLetter,
-          ),
+        _buildDocumentCard(
+          context,
+          'Cover Letter',
+          'PDF',
+          Icons.badge_outlined,
+          Colors.orange.shade100,
+          Colors.orange,
+          user.documents.coverLetter,
         ),
       );
     }
@@ -222,18 +264,14 @@ class DashboardTab extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    // Add spacing between items
-    List<Widget> spacedDocuments = [];
-    for (int i = 0; i < documents.length; i++) {
-      spacedDocuments.add(documents[i]);
-      if (i < documents.length - 1) {
-        spacedDocuments.add(const SizedBox(width: 12));
-      }
-    }
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: spacedDocuments,
+    return GridView.count(
+      crossAxisCount: 2,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisSpacing: 10,
+      mainAxisSpacing: 10,
+      childAspectRatio: 1.1,
+      children: documents,
     );
   }
 
@@ -492,7 +530,7 @@ class DashboardTab extends StatelessWidget {
       onTap: () => _openDocument(context, title, base64Content),
       borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
@@ -508,14 +546,14 @@ class DashboardTab extends StatelessWidget {
         child: Column(
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: bgColor,
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, color: iconColor, size: 28),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             Text(
               title,
               textAlign: TextAlign.center,

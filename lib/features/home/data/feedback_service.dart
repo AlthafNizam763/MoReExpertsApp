@@ -1,9 +1,8 @@
-import 'package:more_experts/core/services/mongodb_service.dart';
-import 'package:mongo_dart/mongo_dart.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:developer';
 
 class FeedbackService {
-  final MongoDBService _mongoDBService = MongoDBService();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Future<bool> saveFeedback({
     required int rating,
@@ -12,15 +11,12 @@ class FeedbackService {
     required String? profilePic,
   }) async {
     try {
-      final collection = _mongoDBService.collection('feedback');
-
-      await collection.insertOne({
-        '_id': ObjectId(),
+      await _firestore.collection('feedback').add({
         'rating': rating,
         'feedbackText': feedbackText,
         'name': name,
         'profilePic': profilePic,
-        'createdAt': DateTime.now().toIso8601String(),
+        'createdAt': FieldValue.serverTimestamp(),
       });
 
       log('Feedback saved successfully');
@@ -33,11 +29,12 @@ class FeedbackService {
 
   Future<List<Map<String, dynamic>>> getFeedback() async {
     try {
-      final collection = _mongoDBService.collection('feedback');
-      final feedbackList = await collection
-          .find(where.sortBy('createdAt', descending: true))
-          .toList();
-      return feedbackList;
+      final snapshot = await _firestore
+          .collection('feedback')
+          .orderBy('createdAt', descending: true)
+          .get();
+
+      return snapshot.docs.map((doc) => doc.data()).toList();
     } catch (e) {
       log('Error fetching feedback: $e');
       return [];

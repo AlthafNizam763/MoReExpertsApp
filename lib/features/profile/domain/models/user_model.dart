@@ -1,5 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:more_experts/core/constants/service_package.dart';
-import 'package:mongo_dart/mongo_dart.dart';
 
 class UserModel {
   final String id;
@@ -34,24 +34,9 @@ class UserModel {
     required this.mobile,
   });
 
-  factory UserModel.fromJson(Map<String, dynamic> json) {
-    var idCallback = json['_id'];
-    String idStr = '';
-    if (idCallback is ObjectId) {
-      idStr = idCallback.toHexString();
-    } else if (idCallback is String) {
-      // Handle case where ID might be wrapped in ObjectId("...") tag
-      if (idCallback.startsWith('ObjectId("') && idCallback.endsWith('")')) {
-        idStr = idCallback.substring(10, idCallback.length - 2);
-      } else {
-        idStr = idCallback;
-      }
-    } else {
-      idStr = idCallback?.toString() ?? '';
-    }
-
+  factory UserModel.fromJson(Map<String, dynamic> json, {String? id}) {
     return UserModel(
-      id: idStr,
+      id: id ?? (json['id'] ?? json['_id'] ?? ''),
       name: json['name'] ?? '',
       email: json['email'] ?? '',
       password: json['password'] ?? '',
@@ -60,7 +45,9 @@ class UserModel {
       profilePic: json['profilePic'] ?? json['profile_pic'],
       documents: UserDocuments.fromJson(json['documents'] ?? {}),
       createdAt: json['createdAt'] != null
-          ? DateTime.parse(json['createdAt'].toString())
+          ? (json['createdAt'] is Timestamp
+              ? (json['createdAt'] as Timestamp).toDate()
+              : DateTime.parse(json['createdAt'].toString()))
           : DateTime.now(),
       address: json['address'] ?? '',
       dob: json['dob'] ?? '',
@@ -70,9 +57,14 @@ class UserModel {
     );
   }
 
+  factory UserModel.fromFirestore(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>? ?? {};
+    return UserModel.fromJson(data, id: doc.id);
+  }
+
   Map<String, dynamic> toJson() {
     return {
-      '_id': id,
+      'id': id,
       'name': name,
       'email': email,
       'password': password,
@@ -80,7 +72,7 @@ class UserModel {
       'status': status,
       'profilePic': profilePic,
       'documents': documents.toJson(),
-      'createdAt': createdAt.toIso8601String(),
+      'createdAt': Timestamp.fromDate(createdAt), // Use Timestamp for Firestore
       'address': address,
       'dob': dob,
       'gender': gender,
@@ -156,12 +148,16 @@ class UserModel {
 
 class UserDocuments {
   final String? serviceGuide;
+  final String? serviceGuide2;
+  final String? serviceGuide3;
   final String? idProof;
   final String? contract;
   final String? coverLetter;
 
   UserDocuments({
     this.serviceGuide,
+    this.serviceGuide2,
+    this.serviceGuide3,
     this.idProof,
     this.contract,
     this.coverLetter,
@@ -170,6 +166,8 @@ class UserDocuments {
   factory UserDocuments.fromJson(Map<String, dynamic> json) {
     return UserDocuments(
       serviceGuide: json['serviceGuide'],
+      serviceGuide2: json['serviceGuide2'] ?? json['serviceGuideBW'],
+      serviceGuide3: json['serviceGuide3'] ?? json['serviceGuideHorizontal'],
       idProof: json['idProof'],
       contract: json['contract'],
       coverLetter: json['coverLetter'],
@@ -179,6 +177,8 @@ class UserDocuments {
   Map<String, dynamic> toJson() {
     return {
       'serviceGuide': serviceGuide,
+      'serviceGuide2': serviceGuide2,
+      'serviceGuide3': serviceGuide3,
       'idProof': idProof,
       'contract': contract,
       'coverLetter': coverLetter,

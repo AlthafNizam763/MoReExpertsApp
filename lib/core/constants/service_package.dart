@@ -72,7 +72,13 @@ class PackageInfo {
       price: '₹600',
       description: 'Executive level package with multiple models.',
       gradientColors: [Color(0xFF0F0F0B), Color(0xFF1C1C1C)],
-      includedDocuments: ['Resume PDF', 'Resume Word Document', 'Cover Letter'],
+      includedDocuments: [
+        'Resume PDF (Colour)',
+        'Resume PDF (Black & White)',
+        'Resume PDF (Horizontal)',
+        'Resume Word Document',
+        'Cover Letter'
+      ],
       includedServices: [
         'Three Models: Colour, B&W, Horizontal',
         'Executive Branding',
@@ -85,7 +91,13 @@ class PackageInfo {
       price: '₹650',
       description: 'Ultimate career advancement with lifetime support.',
       gradientColors: [Color(0xFF2C0A3B), Color(0xFF0F0F0F)],
-      includedDocuments: ['Resume PDF', 'Resume Word Document', 'Cover Letter'],
+      includedDocuments: [
+        'Resume PDF (Colour)',
+        'Resume PDF (Black & White)',
+        'Resume PDF (Horizontal)',
+        'Resume Word Document',
+        'Cover Letter'
+      ],
       includedServices: [
         'Three Models: Colour, B&W, Horizontal',
         'Lifetime Updation Period',
