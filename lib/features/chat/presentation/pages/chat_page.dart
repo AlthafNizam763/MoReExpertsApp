@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:more_experts/features/auth/presentation/provider/auth_provider.dart';
 import 'package:more_experts/features/chat/presentation/providers/chat_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:more_experts/features/chat/domain/models/message_model.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -20,12 +21,8 @@ class _ChatPageState extends State<ChatPage> {
   void initState() {
     super.initState();
     // Start polling when page opens
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final currentUserId = context.read<AuthProvider>().currentUser?.id;
-      if (currentUserId != null) {
-        context.read<ChatProvider>().initChat(currentUserId);
-      }
-    });
+    // StreamBuilder handles data fetching, so no separate init needed
+    // except perhaps setting up user ID if needed for other things
   }
 
   @override
@@ -104,9 +101,7 @@ class _ChatPageState extends State<ChatPage> {
                 const CircleAvatar(
                   backgroundColor: Colors.white24,
                   radius: 22,
-                  child: Text('A',
-                      style: TextStyle(
-                          color: Colors.white, fontWeight: FontWeight.bold)),
+                  backgroundImage: AssetImage('assets/images/admin.png'),
                 ),
                 const SizedBox(width: 15),
                 Column(
@@ -150,13 +145,22 @@ class _ChatPageState extends State<ChatPage> {
 
           // Message List
           Expanded(
-            child: Consumer<ChatProvider>(
-              builder: (context, provider, child) {
-                if (provider.messages.isEmpty && provider.isLoading) {
+            child: StreamBuilder<List<MessageModel>>(
+              stream: user?.id != null
+                  ? context.read<ChatProvider>().getMessagesStream(user!.id)
+                  : const Stream.empty(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                if (provider.messages.isEmpty) {
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                }
+
+                final messages = snapshot.data ?? [];
+
+                if (messages.isEmpty) {
                   return Center(
                     child: Text(
                       'Start a conversation',
@@ -177,9 +181,9 @@ class _ChatPageState extends State<ChatPage> {
                   controller: _scrollController,
                   padding:
                       const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-                  itemCount: provider.messages.length,
+                  itemCount: messages.length,
                   itemBuilder: (context, index) {
-                    final message = provider.messages[index];
+                    final message = messages[index];
                     final isMe = message.isMe;
 
                     return Padding(
@@ -194,9 +198,8 @@ class _ChatPageState extends State<ChatPage> {
                             const CircleAvatar(
                               radius: 16,
                               backgroundColor: Colors.grey,
-                              child: Text('A',
-                                  style: TextStyle(
-                                      color: Colors.white, fontSize: 12)),
+                              backgroundImage:
+                                  AssetImage('assets/images/admin.png'),
                             ),
                             const SizedBox(width: 10),
                           ],

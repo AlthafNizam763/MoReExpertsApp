@@ -15,7 +15,7 @@ class ChatService {
           .orderBy('timestamp', descending: false)
           .snapshots()
           .map((snapshot) {
-        return snapshot.docs
+        final messages = snapshot.docs
             .map((doc) {
               try {
                 return MessageModel.fromFirestore(doc, currentUserId);
@@ -26,6 +26,11 @@ class ChatService {
             })
             .whereType<MessageModel>()
             .toList();
+
+        // Client-side sort to fix ordering issues between Timestamp/String formats
+        messages.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+
+        return messages;
       });
     } catch (e) {
       log('DEBUG: Error getting messages stream: $e');

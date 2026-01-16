@@ -6,31 +6,8 @@ import 'package:more_experts/features/chat/domain/models/message_model.dart';
 
 class ChatProvider extends ChangeNotifier {
   final ChatService _chatService = ChatService();
-  List<MessageModel> _messages = [];
-  bool _isLoading = false;
-  StreamSubscription<List<MessageModel>>? _messagesSubscription;
-
-  List<MessageModel> get messages => _messages;
-  bool get isLoading => _isLoading;
-
-  void initChat(String currentUserId) {
-    _isLoading = true;
-    notifyListeners();
-
-    _messagesSubscription?.cancel();
-    _messagesSubscription =
-        _chatService.getMessagesStream(currentUserId).listen(
-      (messages) {
-        _messages = messages;
-        _isLoading = false;
-        notifyListeners();
-      },
-      onError: (error) {
-        log('Error listening to chat stream: $error');
-        _isLoading = false;
-        notifyListeners();
-      },
-    );
+  Stream<List<MessageModel>> getMessagesStream(String currentUserId) {
+    return _chatService.getMessagesStream(currentUserId);
   }
 
   Future<void> sendMessage(
@@ -47,7 +24,6 @@ class ChatProvider extends ChangeNotifier {
 
   @override
   void dispose() {
-    _messagesSubscription?.cancel();
     _chatService.dispose();
     super.dispose();
   }

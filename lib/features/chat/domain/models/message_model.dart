@@ -34,7 +34,9 @@ class MessageModel {
       conversationId: json['conversationId'] ?? '',
       timestamp: _parseTimestamp(json['timestamp'] ?? json['createdAt']),
       isRead: json['isRead'] ?? false,
-      isMe: (json['sender'] ?? json['senderId']) == currentUserId,
+      isMe: (json['role'] == 'admin')
+          ? false
+          : ((json['sender'] ?? json['senderId']) == currentUserId),
     );
   }
 
