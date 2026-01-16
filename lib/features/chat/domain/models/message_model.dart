@@ -26,13 +26,19 @@ class MessageModel {
 
   factory MessageModel.fromJson(Map<String, dynamic> json, String currentUserId,
       {String? id}) {
+    // Try to get a valid timestamp from server timestamp first, then client timestamp
+    // This fixes the issue where "pending" writes have null server timestamp
+    // and default to DateTime.now(), creating a "ticking clock" effect.
+    final timestamp = _parseTimestamp(
+        json['timestamp'] ?? json['createdAt'], json['clientTimestamp']);
+
     return MessageModel(
       id: id ?? (json['id'] ?? ''),
       text: json['text'] ?? json['content'] ?? '',
       sender: json['sender'] ?? json['senderId'] ?? '',
       role: json['role'] ?? 'user',
       conversationId: json['conversationId'] ?? '',
-      timestamp: _parseTimestamp(json['timestamp'] ?? json['createdAt']),
+      timestamp: timestamp,
       isRead: json['isRead'] ?? false,
       isMe: (json['role'] == 'admin')
           ? false
@@ -40,16 +46,27 @@ class MessageModel {
     );
   }
 
-  static DateTime _parseTimestamp(dynamic timestamp) {
-    if (timestamp == null) return DateTime.now();
+  static DateTime _parseTimestamp(dynamic timestamp,
+      [dynamic clientTimestamp]) {
+    // 1. Try primary server timestamp if it's a valid Timestamp object
     if (timestamp is Timestamp) return timestamp.toDate();
+
+    // 2. If primary is null or invalid, try clientTimestamp (local fallback)
+    if (clientTimestamp is Timestamp) return clientTimestamp.toDate();
+    if (clientTimestamp is String) {
+      try {
+        return DateTime.parse(clientTimestamp);
+      } catch (_) {}
+    }
+
+    // 3. Fallback for server timestamp if it was a String
     if (timestamp is String) {
       try {
         return DateTime.parse(timestamp);
-      } catch (e) {
-        return DateTime.now();
-      }
+      } catch (_) {}
     }
+
+    // 4. Last resort: current time (better than crashing, but likely what we wanted to avoid)
     return DateTime.now();
   }
 

@@ -101,7 +101,7 @@ class _ChatPageState extends State<ChatPage> {
                 const CircleAvatar(
                   backgroundColor: Colors.white24,
                   radius: 22,
-                  backgroundImage: AssetImage('assets/images/admin.png'),
+                  backgroundImage: AssetImage('assets/images/logo2.png'),
                 ),
                 const SizedBox(width: 15),
                 Column(
@@ -199,7 +199,7 @@ class _ChatPageState extends State<ChatPage> {
                               radius: 16,
                               backgroundColor: Colors.grey,
                               backgroundImage:
-                                  AssetImage('assets/images/admin.png'),
+                                  AssetImage('assets/images/logo2.png'),
                             ),
                             const SizedBox(width: 10),
                           ],

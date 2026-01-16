@@ -28,6 +28,8 @@ class ChatService {
             .toList();
 
         // Client-side sort to fix ordering issues between Timestamp/String formats
+        // This also handles pending writes (where server timestamp is null) by using
+        // the clientTimestamp fallback (which is 'now'), ensuring they appear at the bottom.
         messages.sort((a, b) => a.timestamp.compareTo(b.timestamp));
 
         return messages;
@@ -43,6 +45,9 @@ class ChatService {
       String content, String senderId, String userName) async {
     try {
       final timestamp = FieldValue.serverTimestamp();
+      final clientTimestamp = DateTime.now()
+          .toUtc()
+          .toIso8601String(); // Use standard string format for compatibility
 
       final messageData = {
         'text': content,
@@ -50,6 +55,8 @@ class ChatService {
         'role': 'user',
         'conversationId': senderId,
         'timestamp': timestamp,
+        'clientTimestamp':
+            clientTimestamp, // Valid local time for immediate display
         'createdAt': timestamp,
         'isRead': false,
       };
@@ -65,6 +72,8 @@ class ChatService {
       await _firestore.collection('conversations').doc(senderId).set({
         'lastMessage': content,
         'lastMessageTime': timestamp,
+        'lastMessageClientTimestamp':
+            clientTimestamp, // Stable time for conversation list
         'updatedAt': timestamp,
         'userId': senderId,
         'userName': userName,
