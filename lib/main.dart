@@ -3,12 +3,12 @@ import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'core/theme/app_theme.dart';
-import 'core/services/notification_service.dart';
-import 'features/auth/presentation/provider/auth_provider.dart';
-import 'features/chat/presentation/providers/chat_provider.dart';
-import 'features/auth/presentation/pages/login_page.dart';
-import 'features/home/presentation/pages/home_page.dart';
+import 'package:more_experts/core/theme/app_theme.dart';
+import 'package:more_experts/core/services/notification_service.dart';
+import 'package:more_experts/features/auth/presentation/provider/auth_provider.dart';
+import 'package:more_experts/features/chat/presentation/providers/chat_provider.dart';
+import 'package:more_experts/features/auth/presentation/pages/login_page.dart';
+import 'package:more_experts/features/home/presentation/pages/home_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

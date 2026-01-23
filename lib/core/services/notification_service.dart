@@ -2,6 +2,12 @@ import 'dart:developer';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  log("DEBUG: Handling a background message: ${message.messageId}");
+}
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -12,14 +18,31 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
 
-  @pragma('vm:entry-point')
-  static Future<void> _firebaseMessagingBackgroundHandler(
-      RemoteMessage message) async {
-    log("DEBUG: Handling a background message: ${message.messageId}");
+  static const String _notificationsEnabledKey = 'notifications_enabled';
+
+  Future<bool> isNotificationsEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_notificationsEnabledKey) ?? true;
+  }
+
+  Future<void> setNotificationsEnabled(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_notificationsEnabledKey, enabled);
+    if (!enabled) {
+      await _fcm.deleteToken();
+    } else {
+      // Re-initialize to get token and set listeners
+      await initialize();
+    }
   }
 
   Future<void> initialize() async {
     try {
+      bool enabled = await isNotificationsEnabled();
+      if (!enabled) {
+        log('DEBUG: Notifications are disabled by user preference');
+        return;
+      }
       FirebaseMessaging.onBackgroundMessage(
           _firebaseMessagingBackgroundHandler);
 
@@ -44,6 +67,19 @@ class NotificationService {
           log('DEBUG: Notification tapped: ${details.payload}');
         },
       );
+
+      // Create Notification Channel for Android
+      const AndroidNotificationChannel channel = AndroidNotificationChannel(
+        'high_importance_channel',
+        'High Importance Notifications',
+        description: 'This channel is used for important notifications.',
+        importance: Importance.max,
+      );
+
+      await _localNotifications
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>()
+          ?.createNotificationChannel(channel);
 
       // 3. Handle Foreground Messages
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {

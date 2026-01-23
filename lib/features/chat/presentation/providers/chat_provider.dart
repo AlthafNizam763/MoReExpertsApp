@@ -22,6 +22,17 @@ class ChatProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> markAsRead(String userId) async {
+    await _chatService.markMessagesAsRead(userId);
+    notifyListeners();
+  }
+
+  Stream<bool> hasUnreadMessagesStream(String userId) {
+    return _chatService.getMessagesStream(userId).map((messages) {
+      return messages.any((m) => !m.isMe && !m.isRead);
+    });
+  }
+
   @override
   void dispose() {
     _chatService.dispose();

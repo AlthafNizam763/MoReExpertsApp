@@ -4,11 +4,13 @@ import 'package:more_experts/core/constants/app_colors.dart';
 class SpotlightNavBar extends StatelessWidget {
   final int currentIndex;
   final Function(int) onTap;
+  final bool hasUnread;
 
   const SpotlightNavBar({
     super.key,
     required this.currentIndex,
     required this.onTap,
+    this.hasUnread = false,
   });
 
   @override
@@ -61,10 +63,33 @@ class SpotlightNavBar extends StatelessWidget {
                           : Colors.transparent,
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(
-                      item.icon,
-                      color: isSelected ? Colors.white : AppColors.mediaGray,
-                      size: 24,
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Icon(
+                          item.icon,
+                          color:
+                              isSelected ? Colors.white : AppColors.mediaGray,
+                          size: 24,
+                        ),
+                        if (index == 2 && hasUnread && !isSelected)
+                          Positioned(
+                            right: -2,
+                            top: -2,
+                            child: Container(
+                              width: 10,
+                              height: 10,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF1B72B5),
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.white,
+                                  width: 1.5,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 4),

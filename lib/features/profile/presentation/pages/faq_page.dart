@@ -25,24 +25,24 @@ class FaqPage extends StatelessWidget {
         padding: const EdgeInsets.all(16.0),
         children: [
           _buildFaqItem(
-            'How do I book a service?',
-            'You can book a service by navigating to the "Services" tab, selecting a package that fits your needs, and following the checkout process.',
+            'How do I upgrade my package?',
+            'You can upgrade your package by navigating to the "Settings" tab, selecting "Services & Packages", and following the checkout process.',
           ),
           _buildFaqItem(
             'How can I contact support?',
-            'Our support team is available 24/7. You can reach us through the "Chat" section in the app or by emailing support@moreexperts.com.',
+            'Our support team is available 24/7. You can reach us through the "Chat" section in the app or by emailing moreexpert2022@gmail.com.',
           ),
           _buildFaqItem(
             'What are the available packages?',
-            'We offer various packages ranging from Basic to Premium. You can view all details in the "Available Packages" section of your profile.',
+            'We offer various packages ranging from Basic to Premium. You can view all details in the "Available Packages" section of settings.',
           ),
           _buildFaqItem(
             'How do I update my profile?',
-            'Go to your Profile tab, click on "My Profile", and you will be able to edit your personal and professional details.',
+            'Go to your Settings tab, click on "My Profile", and you will be able to edit your personal and professional details.',
           ),
           _buildFaqItem(
-            'Can I cancel a booking?',
-            'Yes, bookings can be cancelled up to 24 hours before the scheduled time. Please refer to our cancellation policy for more details.',
+            'Can I cancel a service?',
+            'Yes, services can be cancelled up to 24 hours before the scheduled time. Please refer to our cancellation policy for more details.',
           ),
         ],
       ),

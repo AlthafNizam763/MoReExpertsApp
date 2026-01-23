@@ -8,6 +8,7 @@ import 'package:more_experts/features/auth/presentation/provider/auth_provider.d
 import 'package:more_experts/features/services/presentation/pages/services_page.dart';
 import 'package:more_experts/features/profile/presentation/pages/profile_page.dart';
 import 'package:more_experts/features/chat/presentation/pages/chat_page.dart';
+import 'package:more_experts/features/chat/presentation/providers/chat_provider.dart';
 import 'package:more_experts/features/profile/domain/models/user_model.dart';
 import 'package:more_experts/core/widgets/spotlight_nav_bar.dart';
 import 'package:more_experts/features/profile/presentation/pages/notifications_page.dart';
@@ -38,12 +39,28 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final user = context.watch<AuthProvider>().currentUser;
+
     return Scaffold(
       body: _pages[_currentIndex],
-      bottomNavigationBar: SpotlightNavBar(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
-      ),
+      bottomNavigationBar: user?.id != null
+          ? StreamBuilder<bool>(
+              stream: context
+                  .read<ChatProvider>()
+                  .hasUnreadMessagesStream(user!.id),
+              initialData: false,
+              builder: (context, snapshot) {
+                return SpotlightNavBar(
+                  currentIndex: _currentIndex,
+                  hasUnread: snapshot.data ?? false,
+                  onTap: (index) => setState(() => _currentIndex = index),
+                );
+              },
+            )
+          : SpotlightNavBar(
+              currentIndex: _currentIndex,
+              onTap: (index) => setState(() => _currentIndex = index),
+            ),
     );
   }
 }
@@ -188,7 +205,7 @@ class DashboardTab extends StatelessWidget {
         documents.add(
           _buildDocumentCard(
             context,
-            'Resume (BW)',
+            'Resume (Black & White)',
             'PDF',
             Icons.picture_as_pdf,
             Colors.grey.shade300,
@@ -202,7 +219,7 @@ class DashboardTab extends StatelessWidget {
         documents.add(
           _buildDocumentCard(
             context,
-            'Resume (H)',
+            'Resume (Horizontal)',
             'PDF',
             Icons.picture_as_pdf,
             Colors.blue.shade100,

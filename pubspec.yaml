@@ -30,6 +30,8 @@ dependencies:
   path_provider: ^2.1.2
   open_filex: ^4.3.2
   url_launcher: ^6.2.0
+  shared_preferences: ^2.5.4
+  emoji_picker_flutter: ^4.4.0
 
 dev_dependencies:
   flutter_test:

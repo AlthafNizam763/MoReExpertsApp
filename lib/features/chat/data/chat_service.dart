@@ -89,6 +89,37 @@ class ChatService {
     }
   }
 
+  // Mark all admin messages as read for a user
+  Future<void> markMessagesAsRead(String userId) async {
+    try {
+      final unreadMessages = await _firestore
+          .collection('conversations')
+          .doc(userId)
+          .collection('messages')
+          .where('role', isEqualTo: 'admin')
+          .where('isRead', isEqualTo: false)
+          .get();
+
+      if (unreadMessages.docs.isEmpty) return;
+
+      final batch = _firestore.batch();
+      for (var doc in unreadMessages.docs) {
+        batch.update(doc.reference, {'isRead': true});
+      }
+
+      await batch.commit();
+
+      // Also reset unreadCount in the conversation document
+      await _firestore.collection('conversations').doc(userId).update({
+        'unreadCount': 0,
+      });
+
+      log('DEBUG: Marked ${unreadMessages.docs.length} messages as read for $userId');
+    } catch (e) {
+      log('DEBUG: Error marking messages as read: $e');
+    }
+  }
+
   void dispose() {
     // Nothing to dispose for Firestore usually
   }

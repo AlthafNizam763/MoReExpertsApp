@@ -4,13 +4,45 @@ import 'package:more_experts/core/constants/app_colors.dart';
 import 'package:more_experts/features/auth/presentation/provider/auth_provider.dart';
 import 'package:more_experts/features/services/presentation/pages/package_list_page.dart';
 import 'package:more_experts/features/services/presentation/pages/services_menu_page.dart';
+import 'package:more_experts/core/services/notification_service.dart';
 import 'edit_profile_page.dart';
 import 'change_password_page.dart';
 import 'about_app_page.dart';
 import 'faq_page.dart';
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  bool _notificationsEnabled = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadNotificationPreference();
+  }
+
+  Future<void> _loadNotificationPreference() async {
+    final enabled = await NotificationService().isNotificationsEnabled();
+    if (mounted) {
+      setState(() {
+        _notificationsEnabled = enabled;
+      });
+    }
+  }
+
+  Future<void> _toggleNotifications(bool value) async {
+    await NotificationService().setNotificationsEnabled(value);
+    if (mounted) {
+      setState(() {
+        _notificationsEnabled = value;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -116,8 +148,9 @@ class ProfilePage extends StatelessWidget {
               label: 'Notifications',
               onTap: () {},
               trailing: Switch.adaptive(
-                value: true,
-                onChanged: (value) {},
+                value: _notificationsEnabled,
+                onChanged: _toggleNotifications,
+                activeColor: const Color(0xFF1B72B5),
               ),
             ),
             _ProfileMenuItem(
