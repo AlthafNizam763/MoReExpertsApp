@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:more_experts/core/constants/app_colors.dart';
 import 'package:more_experts/features/profile/data/notification_service.dart';
 import 'package:more_experts/features/profile/domain/models/notification_model.dart';
+import 'package:more_experts/core/widgets/app_loader.dart';
 
 class NotificationsPage extends StatefulWidget {
   const NotificationsPage({super.key});
@@ -49,7 +50,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
         elevation: 0,
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const AppLoader()
           : _notifications.isEmpty
               ? const Center(
                   child: Text(

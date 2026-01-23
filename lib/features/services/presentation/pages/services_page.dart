@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/service_package.dart';
 import '../../../auth/presentation/provider/auth_provider.dart';
+import 'package:more_experts/core/widgets/app_loader.dart';
 import 'service_detail_page.dart';
 
 class ServiceListPage extends StatelessWidget {
@@ -20,7 +21,7 @@ class ServiceListPage extends StatelessWidget {
           final user = authProvider.currentUser;
 
           if (user == null) {
-            return const Center(child: CircularProgressIndicator());
+            return const AppLoader();
           }
 
           final docs = user.documents;

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:more_experts/features/auth/presentation/provider/auth_provider.dart';
 import '../../../../core/constants/app_colors.dart';
+import 'package:more_experts/core/widgets/app_loader.dart';
 
 class ChangePasswordPage extends StatefulWidget {
   const ChangePasswordPage({super.key});
@@ -143,8 +144,10 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                         ),
                       ),
                       child: auth.status == AuthStatus.loading
-                          ? const CircularProgressIndicator(
-                              color: AppColors.white)
+                          ? const AppLoader(
+                              size: 24,
+                              color: AppColors.white,
+                            )
                           : const Text(
                               'Update Password',
                               style: TextStyle(

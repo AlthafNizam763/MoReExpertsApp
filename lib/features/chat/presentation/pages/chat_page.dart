@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:flutter/material.dart';
+import 'package:more_experts/core/widgets/app_loader.dart';
 import 'package:provider/provider.dart';
 
 import 'package:more_experts/features/auth/presentation/provider/auth_provider.dart';
@@ -194,7 +195,7 @@ class _ChatPageState extends State<ChatPage> {
                     : const Stream.empty(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
+                    return const AppLoader();
                   }
 
                   if (snapshot.hasError) {

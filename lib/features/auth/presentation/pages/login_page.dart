@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../provider/auth_provider.dart';
 import '../../../../main.dart'; // Circular dep for now, normally navigation logic is separate
+import 'package:more_experts/core/widgets/app_loader.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -126,11 +127,10 @@ class _LoginPageState extends State<LoginPage> {
                                   }
                                 },
                           child: auth.status == AuthStatus.loading
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                      strokeWidth: 2, color: AppColors.white))
+                              ? const AppLoader(
+                                  size: 20,
+                                  color: AppColors.white,
+                                )
                               : const Text('Login'),
                         );
                       },

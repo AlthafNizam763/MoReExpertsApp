@@ -3,6 +3,7 @@ import 'package:more_experts/core/constants/app_colors.dart';
 import 'package:provider/provider.dart';
 import 'package:more_experts/features/auth/presentation/provider/auth_provider.dart';
 import 'package:more_experts/features/home/data/feedback_service.dart';
+import 'package:more_experts/core/widgets/app_loader.dart';
 
 class FeedbackPage extends StatefulWidget {
   const FeedbackPage({super.key});
@@ -161,13 +162,9 @@ class _FeedbackPageState extends State<FeedbackPage> {
                   elevation: 2,
                 ),
                 child: _isSubmitting
-                    ? const SizedBox(
-                        height: 24,
-                        width: 24,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2.5,
-                        ),
+                    ? const AppLoader(
+                        size: 24,
+                        color: Colors.white,
                       )
                     : const Text(
                         'Submit Feedback',
