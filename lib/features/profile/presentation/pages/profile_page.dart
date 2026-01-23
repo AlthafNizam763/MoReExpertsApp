@@ -111,15 +111,15 @@ class ProfilePage extends StatelessWidget {
                 );
               },
             ),
-            // _ProfileMenuItem(
-            //   icon: Icons.notifications_none_outlined,
-            //   label: 'Notifications',
-            //   onTap: () {},
-            //   trailing: Switch.adaptive(
-            //     value: true,
-            //     onChanged: (value) {},
-            //   ),
-            // ),
+            _ProfileMenuItem(
+              icon: Icons.notifications_none_outlined,
+              label: 'Notifications',
+              onTap: () {},
+              trailing: Switch.adaptive(
+                value: true,
+                onChanged: (value) {},
+              ),
+            ),
             _ProfileMenuItem(
               icon: Icons.question_answer_outlined,
               label: 'FAQ',
