@@ -188,7 +188,7 @@ class DashboardTab extends StatelessWidget {
         documents.add(
           _buildDocumentCard(
             context,
-            'Service Guide 2',
+            'Resume (BW)',
             'PDF',
             Icons.picture_as_pdf,
             Colors.grey.shade300,
@@ -202,7 +202,7 @@ class DashboardTab extends StatelessWidget {
         documents.add(
           _buildDocumentCard(
             context,
-            'Service Guide 3',
+            'Resume (H)',
             'PDF',
             Icons.picture_as_pdf,
             Colors.blue.shade100,

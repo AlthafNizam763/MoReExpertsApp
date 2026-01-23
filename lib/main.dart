@@ -4,6 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'core/theme/app_theme.dart';
+import 'core/services/notification_service.dart';
 import 'features/auth/presentation/provider/auth_provider.dart';
 import 'features/chat/presentation/providers/chat_provider.dart';
 import 'features/auth/presentation/pages/login_page.dart';
@@ -19,6 +20,9 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Initialize Notifications
+  await NotificationService().initialize();
 
   runApp(
     MultiProvider(
@@ -45,9 +49,12 @@ class MoreExpertsApp extends StatelessWidget {
           switch (auth.status) {
             case AuthStatus.authenticated:
               return const HomePage();
+            case AuthStatus.loading:
             case AuthStatus.initial:
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
             case AuthStatus.unauthenticated:
-            default:
               return const LoginPage();
           }
         },

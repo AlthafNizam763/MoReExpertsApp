@@ -17,8 +17,27 @@ class AuthProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
 
   AuthProvider() {
-    // Initial status is unauthenticated until login
-    _status = AuthStatus.unauthenticated;
+    _checkAuthStatus();
+  }
+
+  Future<void> _checkAuthStatus() async {
+    _status = AuthStatus.loading;
+    notifyListeners();
+
+    try {
+      final user = await _authService.getCurrentUser();
+      if (user != null) {
+        _currentUser = user;
+        _status = AuthStatus.authenticated;
+      } else {
+        _status = AuthStatus.unauthenticated;
+      }
+    } catch (e) {
+      print('DEBUG: AuthProvider error checking session: $e');
+      _status = AuthStatus.unauthenticated;
+    }
+
+    notifyListeners();
   }
 
   Future<void> login(String email, String password) async {

@@ -89,6 +89,26 @@ class AuthService {
     }
   }
 
+  // Get currently logged in user path from Firebase Auth session
+  Future<UserModel?> getCurrentUser() async {
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        log('DEBUG: Found current Firebase Auth session for: ${user.uid}, fetching data');
+        final docSnapshot =
+            await _firestore.collection('users').doc(user.uid).get();
+
+        if (docSnapshot.exists && docSnapshot.data() != null) {
+          return UserModel.fromFirestore(docSnapshot);
+        }
+      }
+      return null;
+    } catch (e) {
+      log('DEBUG: Error getting current user from session: $e');
+      return null;
+    }
+  }
+
   // Logout
   Future<void> logout() async {
     log('DEBUG: Logging out from Firebase');
