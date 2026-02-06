@@ -110,70 +110,78 @@ class DashboardTab extends StatelessWidget {
           const SizedBox(width: 8),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Welcome Section
-            const Text(
-              'Welcome Back',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          await context.read<AuthProvider>().refreshUserData();
+        },
+        color: AppColors.primaryBlue,
+        backgroundColor: Colors.white,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Welcome Section
+              const Text(
+                'Welcome Back',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
 
-            const SizedBox(height: 10),
+              const SizedBox(height: 10),
 
-            // Analytics Cards
-            Row(
-              children: [
-                Expanded(
-                  child: _buildStatCard(
-                    context,
-                    'Resume Completed',
-                    '2745',
-                    Colors.purple,
-                    const SparklinePainter(color: Colors.purple),
+              // Analytics Cards
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildStatCard(
+                      context,
+                      'Resume Completed',
+                      '2745',
+                      Colors.purple,
+                      const SparklinePainter(color: Colors.purple),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildStatCard(
-                    context,
-                    'Placed Candidates',
-                    '86%',
-                    Colors.blue,
-                    const RadialPercentPainter(
-                        percent: 0.86, color: Colors.blue),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildStatCard(
+                      context,
+                      'Placed Candidates',
+                      '86%',
+                      Colors.blue,
+                      const RadialPercentPainter(
+                          percent: 0.86, color: Colors.blue),
+                    ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              ),
 
-            const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-            // Active Service Card (Multi-Package Support)
-            _buildAtmCard(context, user, userName, creationDate),
+              // Active Service Card (Multi-Package Support)
+              _buildAtmCard(context, user, userName, creationDate),
 
-            const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-            // Feedback Section
-            _buildFeedbackSection(),
+              // Feedback Section
+              _buildFeedbackSection(),
 
-            // Documents Section
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Your Documents',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
+              // Documents Section
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Your Documents',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
 
-            const SizedBox(height: 10),
-            // Dynamic Document List
-            _buildFilteredDocuments(context, user),
-          ],
+              const SizedBox(height: 10),
+              // Dynamic Document List
+              _buildFilteredDocuments(context, user),
+            ],
+          ),
         ),
       ),
     );

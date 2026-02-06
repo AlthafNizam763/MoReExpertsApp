@@ -40,6 +40,21 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> refreshUserData() async {
+    if (_currentUser == null) return;
+
+    try {
+      final user = await _authService.getCurrentUser();
+      if (user != null) {
+        _currentUser = user;
+        notifyListeners();
+      }
+    } catch (e) {
+      print('DEBUG: AuthProvider error refreshing user data: $e');
+      // Silently fail on refresh error, keeping old data
+    }
+  }
+
   Future<void> login(String email, String password) async {
     _status = AuthStatus.loading;
     _errorMessage = null;
