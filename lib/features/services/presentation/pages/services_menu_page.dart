@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:more_experts/core/constants/app_colors.dart';
 import 'package:more_experts/features/services/presentation/pages/package_list_page.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ServicesMenuPage extends StatelessWidget {
   const ServicesMenuPage({super.key});
@@ -32,7 +33,7 @@ class ServicesMenuPage extends StatelessWidget {
           _buildServiceCard(
             context,
             'Graphic Designing',
-            Icons.web,
+            Icons.brush,
             Colors.purple,
             () => _showServiceDetails(context, 'Graphic Designing'),
           ),
@@ -40,7 +41,7 @@ class ServicesMenuPage extends StatelessWidget {
           _buildServiceCard(
             context,
             'Web Development',
-            Icons.smartphone,
+            Icons.web,
             Colors.orange,
             () => _showServiceDetails(context, 'Web Development'),
           ),
@@ -48,7 +49,7 @@ class ServicesMenuPage extends StatelessWidget {
           _buildServiceCard(
             context,
             'App Development',
-            Icons.brush,
+            Icons.smartphone,
             Colors.green,
             () => _showServiceDetails(context, 'App Development'),
           ),
@@ -158,6 +159,8 @@ class _ServiceDetailPage extends StatelessWidget {
                   color: Colors.black87,
                 ),
               ),
+              const SizedBox(height: 24),
+              _buildContactButtons(context),
             ] else if (title == 'App Development') ...[
               const Text(
                 'We build custom mobile applications with clean UI, smooth performance, and secure architecture. Our apps are developed based on client requirements and business goals.',
@@ -167,6 +170,8 @@ class _ServiceDetailPage extends StatelessWidget {
                   color: Colors.black87,
                 ),
               ),
+              const SizedBox(height: 24),
+              _buildContactButtons(context),
             ],
             const SizedBox(height: 40),
             const SizedBox(height: 40),
@@ -221,5 +226,92 @@ class _ServiceDetailPage extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Widget _buildContactButtons(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: ElevatedButton.icon(
+            onPressed: _launchWhatsApp,
+            icon: const Icon(Icons.chat_bubble_outline),
+            label: const Text('WhatsApp'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF25D366), // WhatsApp Green
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 0,
+            ),
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: ElevatedButton.icon(
+            onPressed: _launchEmail,
+            icon: const Icon(Icons.email_outlined),
+            label: const Text('Email'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryBlue,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 0,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _launchWhatsApp() async {
+    // Number: 919633146330
+    const phoneNumber = '919633146330';
+
+    // Try the app scheme first
+    final Uri appUrl = Uri.parse('whatsapp://send?phone=$phoneNumber');
+    // Fallback to web link
+    final Uri webUrl = Uri.parse('https://wa.me/$phoneNumber');
+
+    try {
+      if (await canLaunchUrl(appUrl)) {
+        await launchUrl(appUrl);
+      } else if (await canLaunchUrl(webUrl)) {
+        await launchUrl(webUrl, mode: LaunchMode.externalApplication);
+      } else {
+        // Last resort: just try to launch the web url without checking
+        // This is often needed on Android 11+ where canLaunchUrl returns false
+        await launchUrl(webUrl, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      debugPrint('Error launching WhatsApp: $e');
+      // Even if it fails, try the web url one last time if it was an app launch error
+      try {
+        await launchUrl(webUrl, mode: LaunchMode.externalApplication);
+      } catch (_) {}
+    }
+  }
+
+  Future<void> _launchEmail() async {
+    final Uri emailUrl = Uri(
+      scheme: 'mailto',
+      path: 'bondithedeveloper@gmail.com',
+      query: 'subject=Inquiry regarding Development Services',
+    );
+
+    try {
+      if (await canLaunchUrl(emailUrl)) {
+        await launchUrl(emailUrl);
+      } else {
+        // Try launching anyway, some devices report false negatives
+        await launchUrl(emailUrl);
+      }
+    } catch (e) {
+      debugPrint('Error launching Email: $e');
+    }
   }
 }
