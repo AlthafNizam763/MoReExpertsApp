@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
+import 'terms_and_privacy_pages.dart';
 
 class AboutAppPage extends StatelessWidget {
   const AboutAppPage({super.key});
@@ -64,15 +65,23 @@ class AboutAppPage extends StatelessWidget {
             const SizedBox(height: 48),
             _buildListTile(
               label: 'Terms of Service',
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const TermsOfServicePage()),
+                );
+              },
             ),
             _buildListTile(
               label: 'Privacy Policy',
-              onTap: () {},
-            ),
-            _buildListTile(
-              label: 'Licenses',
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const PrivacyPolicyPage()),
+                );
+              },
             ),
             const SizedBox(height: 60),
             const Text(
