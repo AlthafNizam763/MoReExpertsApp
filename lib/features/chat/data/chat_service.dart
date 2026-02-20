@@ -40,6 +40,26 @@ class ChatService {
     }
   }
 
+  // Stream of all conversations for Admin
+  Stream<List<Map<String, dynamic>>> getAllConversationsStream() {
+    try {
+      return _firestore
+          .collection('conversations')
+          .orderBy('lastMessageTime', descending: true)
+          .snapshots()
+          .map((snapshot) {
+        return snapshot.docs.map((doc) {
+          final data = doc.data();
+          data['id'] = doc.id;
+          return data;
+        }).toList();
+      });
+    } catch (e) {
+      log('DEBUG: Error getting all conversations stream: $e');
+      return const Stream.empty();
+    }
+  }
+
   // Send message via Firestore
   Future<void> sendMessage(
       String content, String senderId, String userName) async {
@@ -117,6 +137,51 @@ class ChatService {
       log('DEBUG: Marked ${unreadMessages.docs.length} messages as read for $userId');
     } catch (e) {
       log('DEBUG: Error marking messages as read: $e');
+    }
+  }
+
+  // Send message as Admin
+  Future<void> sendMessageAsAdmin(
+      String content, String userId, String userName) async {
+    try {
+      final timestamp = FieldValue.serverTimestamp();
+      final clientTimestamp = DateTime.now().toUtc().toIso8601String();
+
+      final messageData = {
+        'text': content,
+        'sender': 'MoRe Support',
+        'role': 'support',
+        'conversationId': userId,
+        'timestamp': timestamp,
+        'clientTimestamp': clientTimestamp,
+        'createdAt': timestamp,
+        'isRead': false,
+      };
+
+      // 1. Add message to subcollection
+      await _firestore
+          .collection('conversations')
+          .doc(userId)
+          .collection('messages')
+          .add(messageData);
+
+      // 2. Update parent document for user visibility
+      await _firestore.collection('conversations').doc(userId).set({
+        'lastMessage': content,
+        'lastMessageTime': timestamp,
+        'lastMessageClientTimestamp': clientTimestamp,
+        'updatedAt': timestamp,
+        'userId': userId,
+        'userName': userName,
+        'status': 'active',
+        // Note: we don't increment unreadCount for admin's own view,
+        // but we might want to flag it as unread for the user.
+      }, SetOptions(merge: true));
+
+      log('DEBUG: Admin message sent to Firestore conversations/$userId/messages');
+    } catch (e) {
+      log('DEBUG: Error sending admin message to Firestore: $e');
+      rethrow;
     }
   }
 

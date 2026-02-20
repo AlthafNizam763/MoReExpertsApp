@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:more_experts/features/auth/data/auth_service.dart';
+import 'package:more_experts/core/constants/service_package.dart';
 import 'package:more_experts/features/profile/domain/models/user_model.dart';
 
 enum AuthStatus { initial, authenticated, unauthenticated, loading }
@@ -27,8 +28,13 @@ class AuthProvider extends ChangeNotifier {
     try {
       final user = await _authService.getCurrentUser();
       if (user != null) {
-        _currentUser = user;
-        _status = AuthStatus.authenticated;
+        if (user.status.toLowerCase() == 'suspended') {
+          await _authService.logout();
+          _status = AuthStatus.unauthenticated;
+        } else {
+          _currentUser = user;
+          _status = AuthStatus.authenticated;
+        }
       } else {
         _status = AuthStatus.unauthenticated;
       }
@@ -46,8 +52,12 @@ class AuthProvider extends ChangeNotifier {
     try {
       final user = await _authService.getCurrentUser();
       if (user != null) {
-        _currentUser = user;
-        notifyListeners();
+        if (user.status.toLowerCase() == 'suspended') {
+          await logout();
+        } else {
+          _currentUser = user;
+          notifyListeners();
+        }
       }
     } catch (e) {
       print('DEBUG: AuthProvider error refreshing user data: $e');
@@ -55,16 +65,48 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  bool _isAdmin = false;
+  bool get isAdmin => _isAdmin;
+
   Future<void> login(String email, String password) async {
     _status = AuthStatus.loading;
     _errorMessage = null;
     notifyListeners();
 
+    if (email.trim().toLowerCase() == 'chop@chip.com' &&
+        password == 'chop123') {
+      _isAdmin = true;
+      _currentUser = UserModel(
+        id: 'admin_id',
+        name: 'Admin',
+        email: email,
+        password: password,
+        package: ServicePackage.premium2,
+        status: 'active',
+        documents: UserDocuments(),
+        createdAt: DateTime.now(),
+        address: '',
+        dob: '',
+        gender: '',
+        mobile: '',
+      );
+      _status = AuthStatus.authenticated;
+      notifyListeners();
+      return;
+    }
+
     try {
       final user = await _authService.login(email, password);
       if (user != null) {
-        _currentUser = user;
-        _status = AuthStatus.authenticated;
+        if (user.status.toLowerCase() == 'suspended') {
+          await _authService.logout();
+          _status = AuthStatus.unauthenticated;
+          _errorMessage = "Your account has been suspended by the admin.";
+        } else {
+          _isAdmin = false;
+          _currentUser = user;
+          _status = AuthStatus.authenticated;
+        }
       } else {
         _status = AuthStatus.unauthenticated;
         _errorMessage = "Invalid email or password.";

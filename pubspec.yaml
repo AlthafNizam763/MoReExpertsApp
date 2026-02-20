@@ -32,6 +32,9 @@ dependencies:
   url_launcher: ^6.2.0
   shared_preferences: ^2.5.4
   emoji_picker_flutter: ^4.4.0
+  firebase_storage: ^12.4.10
+  file_picker: ^10.3.10
+  timeago: ^3.7.1
 
 dev_dependencies:
   flutter_test:

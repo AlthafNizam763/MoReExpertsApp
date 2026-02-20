@@ -40,7 +40,7 @@ class MessageModel {
       conversationId: json['conversationId'] ?? '',
       timestamp: timestamp,
       isRead: json['isRead'] ?? false,
-      isMe: (json['role'] == 'admin')
+      isMe: (json['role'] == 'admin' || json['role'] == 'support')
           ? false
           : ((json['sender'] ?? json['senderId']) == currentUserId),
     );

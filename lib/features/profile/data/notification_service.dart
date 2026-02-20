@@ -19,4 +19,29 @@ class NotificationService {
       return [];
     }
   }
+
+  Future<void> addNotification(NotificationModel notification) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection(collectionName)
+          .add(notification.toJson());
+      log('Notification added successfully');
+    } catch (e) {
+      log('Error adding notification: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> deleteNotification(String docId) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection(collectionName)
+          .doc(docId)
+          .delete();
+      log('Notification deleted successfully');
+    } catch (e) {
+      log('Error deleting notification: $e');
+      rethrow;
+    }
+  }
 }

@@ -9,6 +9,7 @@ import 'package:more_experts/features/auth/presentation/provider/auth_provider.d
 import 'package:more_experts/features/chat/presentation/providers/chat_provider.dart';
 import 'package:more_experts/features/auth/presentation/pages/login_page.dart';
 import 'package:more_experts/features/home/presentation/pages/home_page.dart';
+import 'package:more_experts/features/admin/presentation/pages/admin_dashboard.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -48,7 +49,7 @@ class MoreExpertsApp extends StatelessWidget {
         builder: (context, auth, _) {
           switch (auth.status) {
             case AuthStatus.authenticated:
-              return const HomePage();
+              return auth.isAdmin ? const AdminDashboard() : const HomePage();
             case AuthStatus.loading:
             case AuthStatus.initial:
               return const Scaffold(
