@@ -155,10 +155,12 @@ class _AdminUserDetailPageState extends State<AdminUserDetailPage> {
                   children: [
                     TextFormField(
                       initialValue: name,
-                      style: const TextStyle(color: Colors.white),
+                      style: const TextStyle(
+                          color: Color.fromARGB(134, 17, 38, 233)),
                       decoration: InputDecoration(
                         labelText: 'Name',
-                        labelStyle: TextStyle(color: Colors.grey.shade400),
+                        labelStyle: TextStyle(
+                            color: const Color.fromARGB(255, 7, 7, 7)),
                         enabledBorder: UnderlineInputBorder(
                             borderSide:
                                 BorderSide(color: Colors.grey.shade700)),
@@ -168,10 +170,12 @@ class _AdminUserDetailPageState extends State<AdminUserDetailPage> {
                     ),
                     TextFormField(
                       initialValue: mobile,
-                      style: const TextStyle(color: Colors.white),
+                      style: const TextStyle(
+                          color: Color.fromARGB(134, 17, 38, 233)),
                       decoration: InputDecoration(
                         labelText: 'Mobile',
-                        labelStyle: TextStyle(color: Colors.grey.shade400),
+                        labelStyle: TextStyle(
+                            color: const Color.fromARGB(255, 7, 7, 7)),
                         enabledBorder: UnderlineInputBorder(
                             borderSide:
                                 BorderSide(color: Colors.grey.shade700)),
@@ -182,10 +186,12 @@ class _AdminUserDetailPageState extends State<AdminUserDetailPage> {
                     DropdownButtonFormField<ServicePackage>(
                       value: package,
                       dropdownColor: const Color(0xFF2A2A2A),
-                      style: const TextStyle(color: Colors.white),
+                      style: const TextStyle(
+                          color: Color.fromARGB(134, 17, 38, 233)),
                       decoration: InputDecoration(
                         labelText: 'Package',
-                        labelStyle: TextStyle(color: Colors.grey.shade400),
+                        labelStyle: TextStyle(
+                            color: const Color.fromARGB(255, 7, 7, 7)),
                         enabledBorder: UnderlineInputBorder(
                             borderSide:
                                 BorderSide(color: Colors.grey.shade700)),
@@ -200,10 +206,12 @@ class _AdminUserDetailPageState extends State<AdminUserDetailPage> {
                     DropdownButtonFormField<String>(
                       value: status,
                       dropdownColor: const Color(0xFF2A2A2A),
-                      style: const TextStyle(color: Colors.white),
+                      style: const TextStyle(
+                          color: Color.fromARGB(134, 17, 38, 233)),
                       decoration: InputDecoration(
                         labelText: 'Status',
-                        labelStyle: TextStyle(color: Colors.grey.shade400),
+                        labelStyle: TextStyle(
+                            color: const Color.fromARGB(255, 7, 7, 7)),
                         enabledBorder: UnderlineInputBorder(
                             borderSide:
                                 BorderSide(color: Colors.grey.shade700)),
