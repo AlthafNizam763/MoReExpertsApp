@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:more_experts/features/auth/data/auth_service.dart';
 import 'package:more_experts/core/constants/service_package.dart';
 import 'package:more_experts/features/profile/domain/models/user_model.dart';
@@ -26,12 +27,39 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      // 1. Check for Admin persistence first
+      final prefs = await SharedPreferences.getInstance();
+      final isAdminSession = prefs.getBool('is_admin_logged') ?? false;
+
+      if (isAdminSession) {
+        _isAdmin = true;
+        _currentUser = UserModel(
+          id: 'admin_id',
+          name: 'Admin',
+          email: 'chop@chip.com',
+          password: 'chop123',
+          package: ServicePackage.premium2,
+          status: 'active',
+          documents: UserDocuments(),
+          createdAt: DateTime.now(),
+          address: '',
+          dob: '',
+          gender: '',
+          mobile: '',
+        );
+        _status = AuthStatus.authenticated;
+        notifyListeners();
+        return;
+      }
+
+      // 2. Fallback to Firebase session
       final user = await _authService.getCurrentUser();
       if (user != null) {
         if (user.status.toLowerCase() == 'suspended') {
           await _authService.logout();
           _status = AuthStatus.unauthenticated;
         } else {
+          _isAdmin = false;
           _currentUser = user;
           _status = AuthStatus.authenticated;
         }
@@ -75,6 +103,9 @@ class AuthProvider extends ChangeNotifier {
 
     if (email.trim().toLowerCase() == 'chop@chip.com' &&
         password == 'chop123') {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('is_admin_logged', true);
+
       _isAdmin = true;
       _currentUser = UserModel(
         id: 'admin_id',
@@ -122,9 +153,13 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('is_admin_logged');
+
     await _authService.logout();
     _currentUser = null;
     _status = AuthStatus.unauthenticated;
+    _isAdmin = false;
     notifyListeners();
   }
 

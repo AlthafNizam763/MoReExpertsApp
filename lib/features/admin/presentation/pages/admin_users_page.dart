@@ -69,44 +69,16 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
               itemCount: users.length,
               itemBuilder: (context, index) {
                 final user = users[index];
-                final bool hasPic = user.profilePic != null &&
-                    user.profilePic!.trim().isNotEmpty &&
-                    user.profilePic!.trim().startsWith('http');
                 return GlassCard(
                   margin: const EdgeInsets.only(bottom: 12),
                   borderRadius: 16,
                   child: ListTile(
                     contentPadding:
                         const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    leading: CircleAvatar(
-                      backgroundColor: Colors.white.withOpacity(0.1),
+                    leading: GlassAvatar(
+                      imagePath: user.profilePic,
+                      name: user.name,
                       radius: 24,
-                      child: hasPic
-                          ? ClipOval(
-                              child: Image.network(
-                                user.profilePic!.trim(),
-                                width: 48,
-                                height: 48,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    Center(
-                                  child: Text(
-                                    user.name.isNotEmpty
-                                        ? user.name[0].toUpperCase()
-                                        : '?',
-                                    style: const TextStyle(color: Colors.white),
-                                  ),
-                                ),
-                              ),
-                            )
-                          : Text(
-                              user.name.isNotEmpty
-                                  ? user.name[0].toUpperCase()
-                                  : '?',
-                              style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold),
-                            ),
                     ),
                     title: Text(user.name,
                         style: const TextStyle(

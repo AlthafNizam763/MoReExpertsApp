@@ -160,3 +160,133 @@ class GlassCard extends StatelessWidget {
     );
   }
 }
+
+class GlassAvatar extends StatelessWidget {
+  final String? imagePath;
+  final String name;
+  final double radius;
+  final bool isAdmin;
+
+  const GlassAvatar({
+    super.key,
+    this.imagePath,
+    required this.name,
+    this.radius = 24,
+    this.isAdmin = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    Widget image;
+    final String? path = imagePath?.trim();
+
+    if (path != null && path.isNotEmpty) {
+      if (path.startsWith('http')) {
+        image = Image.network(
+          path,
+          fit: BoxFit.cover,
+          width: radius * 2,
+          height: radius * 2,
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return Center(
+              child: CircularProgressIndicator(
+                value: loadingProgress.expectedTotalBytes != null
+                    ? loadingProgress.cumulativeBytesLoaded /
+                        loadingProgress.expectedTotalBytes!
+                    : null,
+                strokeWidth: 2,
+                color: Colors.white24,
+              ),
+            );
+          },
+          errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
+        );
+      } else if (path.startsWith('data:image')) {
+        try {
+          final uri = Uri.parse(path);
+          final data = uri.data;
+          if (data != null) {
+            final bytes = data.contentAsBytes();
+            image = Image.memory(
+              bytes,
+              fit: BoxFit.cover,
+              width: radius * 2,
+              height: radius * 2,
+              errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
+            );
+          } else {
+            image = _buildPlaceholder();
+          }
+        } catch (e) {
+          image = _buildPlaceholder();
+        }
+      } else {
+        image = _buildPlaceholder();
+      }
+    } else {
+      image = _buildPlaceholder();
+    }
+
+    return Container(
+      width: radius * 2,
+      height: radius * 2,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: Colors.white.withOpacity(0.1),
+          width: 0.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: CircleAvatar(
+        radius: radius,
+        backgroundColor: Colors.white.withOpacity(0.05),
+        child: ClipOval(child: image),
+      ),
+    );
+  }
+
+  Widget _buildPlaceholder() {
+    if (isAdmin) {
+      return Image.asset(
+        'assets/images/admin.png',
+        fit: BoxFit.cover,
+        width: radius * 2,
+        height: radius * 2,
+        errorBuilder: (context, error, stackTrace) => _buildInitials(),
+      );
+    }
+    return _buildInitials();
+  }
+
+  Widget _buildInitials() {
+    return Container(
+      width: radius * 2,
+      height: radius * 2,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Colors.white.withOpacity(0.1),
+            Colors.white.withOpacity(0.05),
+          ],
+        ),
+      ),
+      child: Text(
+        name.isNotEmpty ? name[0].toUpperCase() : '?',
+        style: TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+          fontSize: radius * 0.8,
+        ),
+      ),
+    );
+  }
+}

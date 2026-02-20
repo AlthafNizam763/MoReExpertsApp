@@ -191,42 +191,14 @@ class _AdminHomeTabState extends State<_AdminHomeTab> {
                           Text('No recent users.',
                               style: TextStyle(color: Colors.grey.shade500)),
                         ...topRecentUsers.map((u) {
-                          final bool hasPic = u.profilePic != null &&
-                              u.profilePic!.trim().isNotEmpty &&
-                              u.profilePic!.trim().startsWith('http');
                           return GlassCard(
                             margin: const EdgeInsets.only(bottom: 12),
                             borderRadius: 16,
                             child: ListTile(
-                              leading: CircleAvatar(
-                                backgroundColor: Colors.white.withOpacity(0.1),
-                                child: hasPic
-                                    ? ClipOval(
-                                        child: Image.network(
-                                          u.profilePic!.trim(),
-                                          width: 40,
-                                          height: 40,
-                                          fit: BoxFit.cover,
-                                          errorBuilder:
-                                              (context, error, stackTrace) =>
-                                                  Center(
-                                            child: Text(
-                                              u.name.isNotEmpty
-                                                  ? u.name[0].toUpperCase()
-                                                  : '?',
-                                              style: const TextStyle(
-                                                  color: Colors.white),
-                                            ),
-                                          ),
-                                        ),
-                                      )
-                                    : Text(
-                                        u.name.isNotEmpty
-                                            ? u.name[0].toUpperCase()
-                                            : '?',
-                                        style: const TextStyle(
-                                            color: Colors.white),
-                                      ),
+                              leading: GlassAvatar(
+                                imagePath: u.profilePic,
+                                name: u.name,
+                                radius: 20,
                               ),
                               title: Text(u.name,
                                   style: const TextStyle(
@@ -498,29 +470,11 @@ class _AdminSettingsTab extends StatelessWidget {
           children: [
             const SizedBox(height: 20),
             Center(
-              child: GlassCard(
-                borderRadius: 70,
-                padding: const EdgeInsets.all(4),
-                child: CircleAvatar(
-                  radius: 60,
-                  backgroundColor: Colors.white.withOpacity(0.1),
-                  child: ClipOval(
-                    child: adminUser?.profilePic != null &&
-                            adminUser!.profilePic!.isNotEmpty
-                        ? Image.network(
-                            adminUser.profilePic!,
-                            width: 120,
-                            height: 120,
-                            fit: BoxFit.cover,
-                          )
-                        : Image.asset(
-                            'assets/images/admin.png',
-                            width: 120,
-                            height: 120,
-                            fit: BoxFit.cover,
-                          ),
-                  ),
-                ),
+              child: GlassAvatar(
+                imagePath: adminUser?.profilePic,
+                name: adminUser?.name ?? 'Admin',
+                radius: 60,
+                isAdmin: true,
               ),
             ),
             const SizedBox(height: 20),

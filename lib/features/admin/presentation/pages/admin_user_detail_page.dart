@@ -3,6 +3,7 @@ import 'package:more_experts/features/admin/data/admin_service.dart';
 import 'package:more_experts/features/profile/domain/models/user_model.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:more_experts/core/constants/service_package.dart';
+import 'package:more_experts/features/admin/presentation/widgets/glass_widgets.dart';
 
 class AdminUserDetailPage extends StatefulWidget {
   final UserModel user;
@@ -400,55 +401,10 @@ class _AdminUserDetailPageState extends State<AdminUserDetailPage> {
               padding: const EdgeInsets.all(20),
               children: [
                 Center(
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                          color: Colors.blue.withOpacity(0.3), width: 2),
-                    ),
-                    child: CircleAvatar(
-                      radius: 50,
-                      backgroundColor: const Color(0xFF1E1E1E),
-                      child: (user.profilePic != null &&
-                              user.profilePic!.trim().isNotEmpty &&
-                              user.profilePic!.trim().startsWith('http'))
-                          ? ClipOval(
-                              child: Image.network(
-                                user.profilePic!.trim(),
-                                width: 100,
-                                height: 100,
-                                fit: BoxFit.cover,
-                                loadingBuilder:
-                                    (context, child, loadingProgress) {
-                                  if (loadingProgress == null) return child;
-                                  return const Center(
-                                    child: CircularProgressIndicator(
-                                      color: Colors.blue,
-                                      strokeWidth: 2,
-                                    ),
-                                  );
-                                },
-                                errorBuilder: (context, error, stackTrace) =>
-                                    Center(
-                                  child: Text(
-                                    user.name.isNotEmpty
-                                        ? user.name[0].toUpperCase()
-                                        : '?',
-                                    style: const TextStyle(
-                                        fontSize: 40, color: Colors.white),
-                                  ),
-                                ),
-                              ),
-                            )
-                          : Text(
-                              user.name.isNotEmpty
-                                  ? user.name[0].toUpperCase()
-                                  : '?',
-                              style: const TextStyle(
-                                  fontSize: 40, color: Colors.white),
-                            ),
-                    ),
+                  child: GlassAvatar(
+                    imagePath: user.profilePic,
+                    name: user.name,
+                    radius: 60,
                   ),
                 ),
                 const SizedBox(height: 24),
