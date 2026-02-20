@@ -11,6 +11,7 @@ import 'package:more_experts/features/chat/presentation/pages/chat_page.dart';
 import 'package:more_experts/features/chat/presentation/providers/chat_provider.dart';
 import 'package:more_experts/features/profile/domain/models/user_model.dart';
 import 'package:more_experts/core/widgets/spotlight_nav_bar.dart';
+import 'package:more_experts/core/services/notification_service.dart';
 import 'package:more_experts/features/profile/presentation/pages/notifications_page.dart';
 import 'dart:async';
 import 'dart:convert';
@@ -37,6 +38,21 @@ class _HomePageState extends State<HomePage> {
     const ChatPage(),
     const ProfilePage(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _initNotifications();
+  }
+
+  void _initNotifications() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final user = context.read<AuthProvider>().currentUser;
+      if (user != null) {
+        NotificationService().startListening(user.id);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

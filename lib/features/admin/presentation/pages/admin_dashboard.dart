@@ -14,6 +14,7 @@ import 'package:more_experts/features/admin/data/admin_service.dart';
 import 'package:more_experts/features/home/data/feedback_service.dart';
 import 'package:more_experts/features/profile/domain/models/user_model.dart';
 import 'package:more_experts/core/constants/service_package.dart';
+import 'package:more_experts/core/services/notification_service.dart';
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -24,6 +25,21 @@ class AdminDashboard extends StatefulWidget {
 
 class _AdminDashboardState extends State<AdminDashboard> {
   int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _initNotifications();
+  }
+
+  void _initNotifications() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final user = context.read<AuthProvider>().currentUser;
+      if (user != null) {
+        NotificationService().startListening(user.id);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

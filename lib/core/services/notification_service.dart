@@ -1,8 +1,10 @@
 import 'dart:developer';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:async';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -15,8 +17,13 @@ class NotificationService {
   NotificationService._internal();
 
   FirebaseMessaging get _fcm => FirebaseMessaging.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
+
+  StreamSubscription? _systemNotificationSubscription;
+  StreamSubscription? _chatSubscription;
+  String? _currentUserId;
 
   static const String _notificationsEnabledKey = 'notifications_enabled';
 
@@ -84,7 +91,7 @@ class NotificationService {
       // 3. Handle Foreground Messages
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
         log('DEBUG: Foreground message received: ${message.notification?.title}');
-        _showLocalNotification(message);
+        showRemoteNotification(message);
       });
 
       // 4. Handle Background/Terminated Messages
@@ -98,6 +105,11 @@ class NotificationService {
         log('DEBUG: FCM Token: $token');
       } catch (e) {
         log('DEBUG: Error getting FCM token: $e');
+      }
+
+      // 6. Start Firestore Listener for Simulated Push (Fallback)
+      if (_currentUserId != null) {
+        startListening(_currentUserId!);
       }
     } catch (e) {
       log('DEBUG: Error initializing NotificationService: $e');
@@ -126,23 +138,94 @@ class NotificationService {
     }
   }
 
-  Future<void> _showLocalNotification(RemoteMessage message) async {
+  void startListening(String userId) {
+    _currentUserId = userId;
+    _stopListening();
+
+    log('DEBUG: Starting Firestore Notification Listeners for user: $userId');
+
+    // 1. Listen for new System Notifications
+    // We only want notifications created AFTER now
+    final startTime = DateTime.now();
+    _systemNotificationSubscription = _firestore
+        .collection('notifications')
+        .where('createdAt', isGreaterThan: Timestamp.fromDate(startTime))
+        .snapshots()
+        .listen((snapshot) {
+      for (var change in snapshot.docChanges) {
+        if (change.type == DocumentChangeType.added) {
+          final data = change.doc.data();
+          if (data != null) {
+            _showLocalNotification(
+              title: data['title'] ?? 'New Notification',
+              body: data['description'] ?? '',
+              payload: 'system_notification',
+            );
+          }
+        }
+      }
+    });
+
+    // 2. Listen for new Chat Messages
+    _chatSubscription = _firestore
+        .collection('conversations')
+        .doc(userId)
+        .collection('messages')
+        .where('timestamp', isGreaterThan: Timestamp.fromDate(startTime))
+        .snapshots()
+        .listen((snapshot) {
+      for (var change in snapshot.docChanges) {
+        if (change.type == DocumentChangeType.added) {
+          final data = change.doc.data();
+          if (data != null && data['role'] != 'user') {
+            // Only notify for messages NOT from the user themselves
+            _showLocalNotification(
+              title: 'Message from ${data['sender'] ?? 'Support'}',
+              body: data['text'] ?? '',
+              payload: 'chat_message',
+            );
+          }
+        }
+      }
+    });
+  }
+
+  void _stopListening() {
+    _systemNotificationSubscription?.cancel();
+    _chatSubscription?.cancel();
+  }
+
+  Future<void> _showLocalNotification({
+    required String title,
+    required String body,
+    String? payload,
+  }) async {
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
-      'high_importance_channel', // id
-      'High Importance Notifications', // title
+      'high_importance_channel',
+      'High Importance Notifications',
       importance: Importance.max,
       priority: Priority.high,
+      showWhen: true,
     );
 
     const NotificationDetails platformChannelSpecifics =
         NotificationDetails(android: androidPlatformChannelSpecifics);
 
     await _localNotifications.show(
-      message.hashCode,
-      message.notification?.title,
-      message.notification?.body,
+      DateTime.now().millisecond,
+      title,
+      body,
       platformChannelSpecifics,
+      payload: payload,
+    );
+  }
+
+  // Update original show message for FCM compatibility
+  Future<void> showRemoteNotification(RemoteMessage message) async {
+    await _showLocalNotification(
+      title: message.notification?.title ?? 'Notification',
+      body: message.notification?.body ?? '',
       payload: message.data.toString(),
     );
   }
